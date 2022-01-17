@@ -1,6 +1,6 @@
 {
   "name": "@waku/preview-proxy",
-  "version": "0.1.0",
+  "version": "0.1.0-rc.0",
   "main": "index.js",
   "license": "MIT",
   "type": "module",
@@ -15,5 +15,6 @@
     "fix": "",
     "build": "",
     "test": ""
-  }
+  },
+  "stableVersion": "0.1.0"
 }

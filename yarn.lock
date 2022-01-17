@@ -1265,7 +1265,7 @@ __metadata:
     "@types/styled-components": ^5.1.12
     "@typescript-eslint/eslint-plugin": ^4.29.0
     "@typescript-eslint/parser": ^4.29.0
-    "@waku/react-chat-sdk": ^0.1.0
+    "@waku/react-chat-sdk": ^0.1.0-rc.0
     assert: ^2.0.0
     browserify-zlib: ^0.2.0
     buffer: ^6.0.3
@@ -1304,7 +1304,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@waku/react-chat-sdk@^0.1.0, @waku/react-chat-sdk@workspace:packages/react-chat":
+"@waku/react-chat-sdk@^0.1.0-rc.0, @waku/react-chat-sdk@workspace:packages/react-chat":
   version: 0.0.0-use.local
   resolution: "@waku/react-chat-sdk@workspace:packages/react-chat"
   dependencies:
@@ -1319,7 +1319,7 @@ __metadata:
     "@types/styled-components": ^5.1.12
     "@typescript-eslint/eslint-plugin": ^4.29.0
     "@typescript-eslint/parser": ^4.29.0
-    "@waku/status-communities": ^0.1.0
+    "@waku/status-communities": ^0.1.0-rc.0
     chai: ^4.3.4
     copyfiles: ^2.4.1
     emoji-mart: ^3.0.1
@@ -1343,7 +1343,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@waku/status-communities@^0.1.0, @waku/status-communities@workspace:packages/status-communities":
+"@waku/status-communities@^0.1.0-rc.0, @waku/status-communities@workspace:packages/status-communities":
   version: 0.0.0-use.local
   resolution: "@waku/status-communities@workspace:packages/status-communities"
   dependencies:

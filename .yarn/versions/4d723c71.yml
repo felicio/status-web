@@ -1,0 +1,4 @@
+undecided:
+  - "@waku/react-chat-sdk"
+  - "@waku/react-chat-sdk-example"
+  - "@waku/status-communities"
