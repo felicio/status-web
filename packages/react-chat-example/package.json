@@ -5,6 +5,9 @@
   "repository": "https://github.com/status-im/dappconnect-chat-sdk/",
   "license": "MIT OR Apache-2.0",
   "packageManager": "yarn@3.0.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "clean:all": "yarn clean && rimraf node_modules/",
     "clean": "rimraf dist/",

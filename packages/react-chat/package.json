@@ -7,6 +7,9 @@
   "repository": "https://github.com/status-im/dappconnect-chat-sdk/",
   "license": "MIT OR Apache-2.0",
   "packageManager": "yarn@3.0.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "run-s 'build:*'",
     "build:esm": "tsc --module es2020 --target es2017 --outDir dist/esm",
