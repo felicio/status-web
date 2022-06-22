@@ -9,7 +9,7 @@ import { compressPublicKey } from '~/src/utils/compress-public-key'
 
 import { idToContentTopic } from '../../contentTopic'
 import { createSymKeyFromPassword } from '../../encryption'
-import { setClock } from '../../utils/set-clock'
+import { getNextClock } from '../../utils/get-next-clock'
 import { Chat } from '../chat'
 import { Member } from '../member'
 
@@ -21,8 +21,8 @@ import type {
 
 export class Community {
   private client: Client
+  #clock: bigint
 
-  public clock: bigint
   /** Compressed. */
   public publicKey: string
   public id: string
@@ -33,17 +33,13 @@ export class Community {
   #members: Map<string, Member>
   #callbacks: Set<(description: CommunityDescription) => void>
 
-  public setClock: (currentClock?: bigint) => bigint
-
   constructor(client: Client, publicKey: string) {
     this.client = client
 
     this.publicKey = publicKey
     this.id = publicKey.replace(/^0[xX]/, '')
 
-    this.setClock = setClock.bind(this)
-
-    this.clock = BigInt(Date.now())
+    this.#clock = BigInt(Date.now())
     this.chats = new Map()
     this.#members = new Map()
     this.#callbacks = new Set()
@@ -250,7 +246,7 @@ export class Community {
 
   public requestToJoin = async (chatId = '') => {
     const payload = CommunityRequestToJoin.encode({
-      clock: this.setClock(this.clock),
+      clock: this.setClock(this.#clock),
       chatId,
       communityId: hexToBytes(this.id),
       ensName: '',
@@ -273,5 +269,11 @@ export class Community {
 
   public isMember = (signerPublicKey: string): boolean => {
     return this.getMember(signerPublicKey) !== undefined
+  }
+
+  public setClock = (currentClock?: bigint): bigint => {
+    this.#clock = getNextClock(currentClock)
+
+    return this.#clock
   }
 }
