@@ -1,5 +1,7 @@
 import { bytesToHex } from 'ethereum-cryptography/utils'
 
+import { isClockValid } from '~/src/utils/is-clock-valid'
+
 import { ApplicationMetadataMessage } from '../../../protos/application-metadata-message'
 import {
   ChatMessage,
@@ -27,11 +29,16 @@ export function handleWakuMessage(
   community: Community
 ): void {
   // decode (layers)
+  // validate
   if (!wakuMessage.payload) {
     return
   }
 
   if (!wakuMessage.signaturePublicKey) {
+    return
+  }
+
+  if (!wakuMessage.timestamp) {
     return
   }
 
@@ -78,12 +85,18 @@ export function handleWakuMessage(
         // decode
         const decodedPayload = CommunityDescription.decode(messageToDecode)
 
+        // validate
+        if (!isClockValid(BigInt(decodedPayload.clock), messageTimestamp)) {
+          return
+        }
+
         if (!community.isOwner(signerPublicKey)) {
           return
         }
 
         // handle (state and callback)
         community.handleDescription(decodedPayload)
+        community.setClock(BigInt(decodedPayload.clock))
 
         break
       }
@@ -91,6 +104,10 @@ export function handleWakuMessage(
       case ApplicationMetadataMessage.Type.TYPE_CHAT_MESSAGE: {
         // decode
         const decodedPayload = ChatMessage.decode(messageToDecode)
+
+        if (!isClockValid(BigInt(decodedPayload.clock), messageTimestamp)) {
+          return
+        }
 
         switch (decodedPayload.messageType) {
           case MessageType.COMMUNITY_CHAT: {
@@ -114,6 +131,7 @@ export function handleWakuMessage(
 
             // handle
             chat.handleNewMessage(chatMessage, messageTimestamp)
+            chat.setClock(decodedPayload.clock)
 
             break
           }
@@ -128,6 +146,10 @@ export function handleWakuMessage(
 
       case ApplicationMetadataMessage.Type.TYPE_EDIT_MESSAGE: {
         const decodedPayload = EditMessage.decode(messageToDecode)
+
+        if (!isClockValid(BigInt(decodedPayload.clock), messageTimestamp)) {
+          return
+        }
 
         switch (decodedPayload.messageType) {
           case MessageType.COMMUNITY_CHAT: {
@@ -149,6 +171,7 @@ export function handleWakuMessage(
               decodedPayload.clock,
               signerPublicKey
             )
+            chat.setClock(decodedPayload.clock)
 
             break
           }
@@ -163,6 +186,10 @@ export function handleWakuMessage(
 
       case ApplicationMetadataMessage.Type.TYPE_DELETE_MESSAGE: {
         const decodedPayload = DeleteMessage.decode(messageToDecode)
+
+        if (!isClockValid(BigInt(decodedPayload.clock), messageTimestamp)) {
+          return
+        }
 
         switch (decodedPayload.messageType) {
           case MessageType.COMMUNITY_CHAT: {
@@ -183,6 +210,7 @@ export function handleWakuMessage(
               decodedPayload.clock,
               signerPublicKey
             )
+            chat.setClock(decodedPayload.clock)
 
             break
           }
@@ -197,6 +225,10 @@ export function handleWakuMessage(
 
       case ApplicationMetadataMessage.Type.TYPE_PIN_MESSAGE: {
         const decodedPayload = PinMessage.decode(messageToDecode)
+
+        if (!isClockValid(BigInt(decodedPayload.clock), messageTimestamp)) {
+          return
+        }
 
         switch (decodedPayload.messageType) {
           case MessageType.COMMUNITY_CHAT: {
@@ -217,6 +249,7 @@ export function handleWakuMessage(
               decodedPayload.clock,
               decodedPayload.pinned
             )
+            chat.setClock(decodedPayload.clock)
 
             break
           }
@@ -231,6 +264,10 @@ export function handleWakuMessage(
 
       case ApplicationMetadataMessage.Type.TYPE_EMOJI_REACTION: {
         const decodedPayload = EmojiReaction.decode(messageToDecode)
+
+        if (!isClockValid(BigInt(decodedPayload.clock), messageTimestamp)) {
+          return
+        }
 
         switch (decodedPayload.messageType) {
           case MessageType.COMMUNITY_CHAT: {
@@ -252,6 +289,7 @@ export function handleWakuMessage(
               decodedPayload.clock,
               signerPublicKey
             )
+            chat.setClock(decodedPayload.clock)
 
             break
           }
