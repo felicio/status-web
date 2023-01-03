@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package status.v1;
+
 message SignedPreKey {
   bytes signed_pre_key = 1;
   uint32 version = 2;

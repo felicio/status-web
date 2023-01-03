@@ -1,45 +1,45 @@
 /* eslint-disable */
 import Long from 'long'
-import _m0 from 'protobufjs/minimal'
+import * as _m0 from 'protobufjs/minimal'
 
 export const protobufPackage = 'communities.v1'
 
 export enum MessageType {
-  MESSAGE_TYPE_UNKNOWN_UNSPECIFIED = 0,
-  MESSAGE_TYPE_ONE_TO_ONE = 1,
-  MESSAGE_TYPE_MESSAGE_TYPE_PUBLIC_GROUP = 2,
-  MESSAGE_TYPE_PRIVATE_GROUP = 3,
-  /** MESSAGE_TYPE_SYSTEM_MESSAGE_PRIVATE_GROUP - Only local */
-  MESSAGE_TYPE_SYSTEM_MESSAGE_PRIVATE_GROUP = 4,
-  MESSAGE_TYPE_COMMUNITY_CHAT = 5,
-  /** MESSAGE_TYPE_SYSTEM_MESSAGE_GAP - Only local */
-  MESSAGE_TYPE_SYSTEM_MESSAGE_GAP = 6,
+  UNKNOWN_MESSAGE_TYPE = 0,
+  ONE_TO_ONE = 1,
+  PUBLIC_GROUP = 2,
+  PRIVATE_GROUP = 3,
+  /** SYSTEM_MESSAGE_PRIVATE_GROUP - Only local */
+  SYSTEM_MESSAGE_PRIVATE_GROUP = 4,
+  COMMUNITY_CHAT = 5,
+  /** SYSTEM_MESSAGE_GAP - Only local */
+  SYSTEM_MESSAGE_GAP = 6,
   UNRECOGNIZED = -1,
 }
 
 export function messageTypeFromJSON(object: any): MessageType {
   switch (object) {
     case 0:
-    case 'MESSAGE_TYPE_UNKNOWN_UNSPECIFIED':
-      return MessageType.MESSAGE_TYPE_UNKNOWN_UNSPECIFIED
+    case 'UNKNOWN_MESSAGE_TYPE':
+      return MessageType.UNKNOWN_MESSAGE_TYPE
     case 1:
-    case 'MESSAGE_TYPE_ONE_TO_ONE':
-      return MessageType.MESSAGE_TYPE_ONE_TO_ONE
+    case 'ONE_TO_ONE':
+      return MessageType.ONE_TO_ONE
     case 2:
-    case 'MESSAGE_TYPE_MESSAGE_TYPE_PUBLIC_GROUP':
-      return MessageType.MESSAGE_TYPE_MESSAGE_TYPE_PUBLIC_GROUP
+    case 'PUBLIC_GROUP':
+      return MessageType.PUBLIC_GROUP
     case 3:
-    case 'MESSAGE_TYPE_PRIVATE_GROUP':
-      return MessageType.MESSAGE_TYPE_PRIVATE_GROUP
+    case 'PRIVATE_GROUP':
+      return MessageType.PRIVATE_GROUP
     case 4:
-    case 'MESSAGE_TYPE_SYSTEM_MESSAGE_PRIVATE_GROUP':
-      return MessageType.MESSAGE_TYPE_SYSTEM_MESSAGE_PRIVATE_GROUP
+    case 'SYSTEM_MESSAGE_PRIVATE_GROUP':
+      return MessageType.SYSTEM_MESSAGE_PRIVATE_GROUP
     case 5:
-    case 'MESSAGE_TYPE_COMMUNITY_CHAT':
-      return MessageType.MESSAGE_TYPE_COMMUNITY_CHAT
+    case 'COMMUNITY_CHAT':
+      return MessageType.COMMUNITY_CHAT
     case 6:
-    case 'MESSAGE_TYPE_SYSTEM_MESSAGE_GAP':
-      return MessageType.MESSAGE_TYPE_SYSTEM_MESSAGE_GAP
+    case 'SYSTEM_MESSAGE_GAP':
+      return MessageType.SYSTEM_MESSAGE_GAP
     case -1:
     case 'UNRECOGNIZED':
     default:
@@ -49,52 +49,53 @@ export function messageTypeFromJSON(object: any): MessageType {
 
 export function messageTypeToJSON(object: MessageType): string {
   switch (object) {
-    case MessageType.MESSAGE_TYPE_UNKNOWN_UNSPECIFIED:
-      return 'MESSAGE_TYPE_UNKNOWN_UNSPECIFIED'
-    case MessageType.MESSAGE_TYPE_ONE_TO_ONE:
-      return 'MESSAGE_TYPE_ONE_TO_ONE'
-    case MessageType.MESSAGE_TYPE_MESSAGE_TYPE_PUBLIC_GROUP:
-      return 'MESSAGE_TYPE_MESSAGE_TYPE_PUBLIC_GROUP'
-    case MessageType.MESSAGE_TYPE_PRIVATE_GROUP:
-      return 'MESSAGE_TYPE_PRIVATE_GROUP'
-    case MessageType.MESSAGE_TYPE_SYSTEM_MESSAGE_PRIVATE_GROUP:
-      return 'MESSAGE_TYPE_SYSTEM_MESSAGE_PRIVATE_GROUP'
-    case MessageType.MESSAGE_TYPE_COMMUNITY_CHAT:
-      return 'MESSAGE_TYPE_COMMUNITY_CHAT'
-    case MessageType.MESSAGE_TYPE_SYSTEM_MESSAGE_GAP:
-      return 'MESSAGE_TYPE_SYSTEM_MESSAGE_GAP'
+    case MessageType.UNKNOWN_MESSAGE_TYPE:
+      return 'UNKNOWN_MESSAGE_TYPE'
+    case MessageType.ONE_TO_ONE:
+      return 'ONE_TO_ONE'
+    case MessageType.PUBLIC_GROUP:
+      return 'PUBLIC_GROUP'
+    case MessageType.PRIVATE_GROUP:
+      return 'PRIVATE_GROUP'
+    case MessageType.SYSTEM_MESSAGE_PRIVATE_GROUP:
+      return 'SYSTEM_MESSAGE_PRIVATE_GROUP'
+    case MessageType.COMMUNITY_CHAT:
+      return 'COMMUNITY_CHAT'
+    case MessageType.SYSTEM_MESSAGE_GAP:
+      return 'SYSTEM_MESSAGE_GAP'
+    case MessageType.UNRECOGNIZED:
     default:
-      return 'UNKNOWN'
+      return 'UNRECOGNIZED'
   }
 }
 
 export enum ImageType {
-  IMAGE_TYPE_UNKNOWN_UNSPECIFIED = 0,
-  /** IMAGE_TYPE_PNG - Raster image files is payload data that can be read as a raster image */
-  IMAGE_TYPE_PNG = 1,
-  IMAGE_TYPE_JPEG = 2,
-  IMAGE_TYPE_WEBP = 3,
-  IMAGE_TYPE_GIF = 4,
+  UNKNOWN_IMAGE_TYPE = 0,
+  /** PNG - Raster image files is payload data that can be read as a raster image */
+  PNG = 1,
+  JPEG = 2,
+  WEBP = 3,
+  GIF = 4,
   UNRECOGNIZED = -1,
 }
 
 export function imageTypeFromJSON(object: any): ImageType {
   switch (object) {
     case 0:
-    case 'IMAGE_TYPE_UNKNOWN_UNSPECIFIED':
-      return ImageType.IMAGE_TYPE_UNKNOWN_UNSPECIFIED
+    case 'UNKNOWN_IMAGE_TYPE':
+      return ImageType.UNKNOWN_IMAGE_TYPE
     case 1:
-    case 'IMAGE_TYPE_PNG':
-      return ImageType.IMAGE_TYPE_PNG
+    case 'PNG':
+      return ImageType.PNG
     case 2:
-    case 'IMAGE_TYPE_JPEG':
-      return ImageType.IMAGE_TYPE_JPEG
+    case 'JPEG':
+      return ImageType.JPEG
     case 3:
-    case 'IMAGE_TYPE_WEBP':
-      return ImageType.IMAGE_TYPE_WEBP
+    case 'WEBP':
+      return ImageType.WEBP
     case 4:
-    case 'IMAGE_TYPE_GIF':
-      return ImageType.IMAGE_TYPE_GIF
+    case 'GIF':
+      return ImageType.GIF
     case -1:
     case 'UNRECOGNIZED':
     default:
@@ -104,18 +105,19 @@ export function imageTypeFromJSON(object: any): ImageType {
 
 export function imageTypeToJSON(object: ImageType): string {
   switch (object) {
-    case ImageType.IMAGE_TYPE_UNKNOWN_UNSPECIFIED:
-      return 'IMAGE_TYPE_UNKNOWN_UNSPECIFIED'
-    case ImageType.IMAGE_TYPE_PNG:
-      return 'IMAGE_TYPE_PNG'
-    case ImageType.IMAGE_TYPE_JPEG:
-      return 'IMAGE_TYPE_JPEG'
-    case ImageType.IMAGE_TYPE_WEBP:
-      return 'IMAGE_TYPE_WEBP'
-    case ImageType.IMAGE_TYPE_GIF:
-      return 'IMAGE_TYPE_GIF'
+    case ImageType.UNKNOWN_IMAGE_TYPE:
+      return 'UNKNOWN_IMAGE_TYPE'
+    case ImageType.PNG:
+      return 'PNG'
+    case ImageType.JPEG:
+      return 'JPEG'
+    case ImageType.WEBP:
+      return 'WEBP'
+    case ImageType.GIF:
+      return 'GIF'
+    case ImageType.UNRECOGNIZED:
     default:
-      return 'UNKNOWN'
+      return 'UNRECOGNIZED'
   }
 }
 

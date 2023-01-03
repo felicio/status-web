@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from 'long'
-import _m0 from 'protobufjs/minimal'
-import { ChatIdentity } from './chat_identity'
+import * as _m0 from 'protobufjs/minimal'
+import { ChatIdentity } from '../../communities/v1/chat_identity'
 
 export const protobufPackage = 'communities.v1'
 
@@ -20,6 +20,7 @@ export enum CommunityMember_Roles {
   UNKNOWN_ROLE = 0,
   ROLE_ALL = 1,
   ROLE_MANAGE_USERS = 2,
+  ROLE_MODERATE_CONTENT = 3,
   UNRECOGNIZED = -1,
 }
 
@@ -36,6 +37,9 @@ export function communityMember_RolesFromJSON(
     case 2:
     case 'ROLE_MANAGE_USERS':
       return CommunityMember_Roles.ROLE_MANAGE_USERS
+    case 3:
+    case 'ROLE_MODERATE_CONTENT':
+      return CommunityMember_Roles.ROLE_MODERATE_CONTENT
     case -1:
     case 'UNRECOGNIZED':
     default:
@@ -53,8 +57,11 @@ export function communityMember_RolesToJSON(
       return 'ROLE_ALL'
     case CommunityMember_Roles.ROLE_MANAGE_USERS:
       return 'ROLE_MANAGE_USERS'
+    case CommunityMember_Roles.ROLE_MODERATE_CONTENT:
+      return 'ROLE_MODERATE_CONTENT'
+    case CommunityMember_Roles.UNRECOGNIZED:
     default:
-      return 'UNKNOWN'
+      return 'UNRECOGNIZED'
   }
 }
 
@@ -108,13 +115,13 @@ export function communityPermissions_AccessToJSON(
       return 'INVITATION_ONLY'
     case CommunityPermissions_Access.ON_REQUEST:
       return 'ON_REQUEST'
+    case CommunityPermissions_Access.UNRECOGNIZED:
     default:
-      return 'UNKNOWN'
+      return 'UNRECOGNIZED'
   }
 }
 
 export interface CommunityDescription {
-  // fixme?: bigint
   clock: number
   members: { [key: string]: CommunityMember }
   permissions: CommunityPermissions | undefined
@@ -122,6 +129,12 @@ export interface CommunityDescription {
   chats: { [key: string]: CommunityChat }
   banList: string[]
   categories: { [key: string]: CommunityCategory }
+  archiveMagnetlinkClock: number
+  adminSettings: CommunityAdminSettings | undefined
+  introMessage: string
+  outroMessage: string
+  encrypted: boolean
+  tags: string[]
 }
 
 export interface CommunityDescription_MembersEntry {
@@ -137,6 +150,10 @@ export interface CommunityDescription_ChatsEntry {
 export interface CommunityDescription_CategoriesEntry {
   key: string
   value: CommunityCategory | undefined
+}
+
+export interface CommunityAdminSettings {
+  pinMessageAllMembersEnabled: boolean
 }
 
 export interface CommunityChat {
@@ -170,6 +187,15 @@ export interface CommunityRequestToJoin {
   ensName: string
   chatId: string
   communityId: Uint8Array
+  displayName: string
+}
+
+export interface CommunityCancelRequestToJoin {
+  clock: number
+  ensName: string
+  chatId: string
+  communityId: Uint8Array
+  displayName: string
 }
 
 export interface CommunityRequestToJoinResponse {
@@ -177,9 +203,68 @@ export interface CommunityRequestToJoinResponse {
   community: CommunityDescription | undefined
   accepted: boolean
   grant: Uint8Array
+  communityId: Uint8Array
+  magnetUri: string
 }
 
-const baseGrant: object = { chatId: '', clock: 0 }
+export interface CommunityRequestToLeave {
+  clock: number
+  communityId: Uint8Array
+}
+
+export interface CommunityMessageArchiveMagnetlink {
+  clock: number
+  magnetUri: string
+}
+
+export interface WakuMessage {
+  sig: Uint8Array
+  timestamp: number
+  topic: Uint8Array
+  payload: Uint8Array
+  padding: Uint8Array
+  hash: Uint8Array
+  thirdPartyId: string
+}
+
+export interface WakuMessageArchiveMetadata {
+  version: number
+  from: number
+  to: number
+  contentTopic: Uint8Array[]
+}
+
+export interface WakuMessageArchive {
+  version: number
+  metadata: WakuMessageArchiveMetadata | undefined
+  messages: WakuMessage[]
+}
+
+export interface WakuMessageArchiveIndexMetadata {
+  version: number
+  metadata: WakuMessageArchiveMetadata | undefined
+  offset: number
+  size: number
+  padding: number
+}
+
+export interface WakuMessageArchiveIndex {
+  archives: { [key: string]: WakuMessageArchiveIndexMetadata }
+}
+
+export interface WakuMessageArchiveIndex_ArchivesEntry {
+  key: string
+  value: WakuMessageArchiveIndexMetadata | undefined
+}
+
+function createBaseGrant(): Grant {
+  return {
+    communityId: new Uint8Array(),
+    memberId: new Uint8Array(),
+    chatId: '',
+    clock: 0,
+  }
+}
 
 export const Grant = {
   encode(message: Grant, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
@@ -201,9 +286,7 @@ export const Grant = {
   decode(input: _m0.Reader | Uint8Array, length?: number): Grant {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = { ...baseGrant } as Grant
-    message.communityId = new Uint8Array()
-    message.memberId = new Uint8Array()
+    const message = createBaseGrant()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -228,26 +311,16 @@ export const Grant = {
   },
 
   fromJSON(object: any): Grant {
-    const message = { ...baseGrant } as Grant
-    message.communityId = new Uint8Array()
-    message.memberId = new Uint8Array()
-    if (object.communityId !== undefined && object.communityId !== null) {
-      message.communityId = bytesFromBase64(object.communityId)
+    return {
+      communityId: isSet(object.communityId)
+        ? bytesFromBase64(object.communityId)
+        : new Uint8Array(),
+      memberId: isSet(object.memberId)
+        ? bytesFromBase64(object.memberId)
+        : new Uint8Array(),
+      chatId: isSet(object.chatId) ? String(object.chatId) : '',
+      clock: isSet(object.clock) ? Number(object.clock) : 0,
     }
-    if (object.memberId !== undefined && object.memberId !== null) {
-      message.memberId = bytesFromBase64(object.memberId)
-    }
-    if (object.chatId !== undefined && object.chatId !== null) {
-      message.chatId = String(object.chatId)
-    } else {
-      message.chatId = ''
-    }
-    if (object.clock !== undefined && object.clock !== null) {
-      message.clock = Number(object.clock)
-    } else {
-      message.clock = 0
-    }
-    return message
   },
 
   toJSON(message: Grant): unknown {
@@ -263,37 +336,23 @@ export const Grant = {
         message.memberId !== undefined ? message.memberId : new Uint8Array()
       ))
     message.chatId !== undefined && (obj.chatId = message.chatId)
-    message.clock !== undefined && (obj.clock = message.clock)
+    message.clock !== undefined && (obj.clock = Math.round(message.clock))
     return obj
   },
 
-  fromPartial(object: DeepPartial<Grant>): Grant {
-    const message = { ...baseGrant } as Grant
-    if (object.communityId !== undefined && object.communityId !== null) {
-      message.communityId = object.communityId
-    } else {
-      message.communityId = new Uint8Array()
-    }
-    if (object.memberId !== undefined && object.memberId !== null) {
-      message.memberId = object.memberId
-    } else {
-      message.memberId = new Uint8Array()
-    }
-    if (object.chatId !== undefined && object.chatId !== null) {
-      message.chatId = object.chatId
-    } else {
-      message.chatId = ''
-    }
-    if (object.clock !== undefined && object.clock !== null) {
-      message.clock = object.clock
-    } else {
-      message.clock = 0
-    }
+  fromPartial<I extends Exact<DeepPartial<Grant>, I>>(object: I): Grant {
+    const message = createBaseGrant()
+    message.communityId = object.communityId ?? new Uint8Array()
+    message.memberId = object.memberId ?? new Uint8Array()
+    message.chatId = object.chatId ?? ''
+    message.clock = object.clock ?? 0
     return message
   },
 }
 
-const baseCommunityMember: object = { roles: 0 }
+function createBaseCommunityMember(): CommunityMember {
+  return { roles: [] }
+}
 
 export const CommunityMember = {
   encode(
@@ -311,8 +370,7 @@ export const CommunityMember = {
   decode(input: _m0.Reader | Uint8Array, length?: number): CommunityMember {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = { ...baseCommunityMember } as CommunityMember
-    message.roles = []
+    const message = createBaseCommunityMember()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -335,14 +393,11 @@ export const CommunityMember = {
   },
 
   fromJSON(object: any): CommunityMember {
-    const message = { ...baseCommunityMember } as CommunityMember
-    message.roles = []
-    if (object.roles !== undefined && object.roles !== null) {
-      for (const e of object.roles) {
-        message.roles.push(communityMember_RolesFromJSON(e))
-      }
+    return {
+      roles: Array.isArray(object?.roles)
+        ? object.roles.map((e: any) => communityMember_RolesFromJSON(e))
+        : [],
     }
-    return message
   },
 
   toJSON(message: CommunityMember): unknown {
@@ -355,22 +410,17 @@ export const CommunityMember = {
     return obj
   },
 
-  fromPartial(object: DeepPartial<CommunityMember>): CommunityMember {
-    const message = { ...baseCommunityMember } as CommunityMember
-    message.roles = []
-    if (object.roles !== undefined && object.roles !== null) {
-      for (const e of object.roles) {
-        message.roles.push(e)
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<CommunityMember>, I>>(
+    object: I
+  ): CommunityMember {
+    const message = createBaseCommunityMember()
+    message.roles = object.roles?.map(e => e) || []
     return message
   },
 }
 
-const baseCommunityPermissions: object = {
-  ensOnly: false,
-  private: false,
-  access: 0,
+function createBaseCommunityPermissions(): CommunityPermissions {
+  return { ensOnly: false, private: false, access: 0 }
 }
 
 export const CommunityPermissions = {
@@ -396,7 +446,7 @@ export const CommunityPermissions = {
   ): CommunityPermissions {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = { ...baseCommunityPermissions } as CommunityPermissions
+    const message = createBaseCommunityPermissions()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -418,23 +468,13 @@ export const CommunityPermissions = {
   },
 
   fromJSON(object: any): CommunityPermissions {
-    const message = { ...baseCommunityPermissions } as CommunityPermissions
-    if (object.ensOnly !== undefined && object.ensOnly !== null) {
-      message.ensOnly = Boolean(object.ensOnly)
-    } else {
-      message.ensOnly = false
+    return {
+      ensOnly: isSet(object.ensOnly) ? Boolean(object.ensOnly) : false,
+      private: isSet(object.private) ? Boolean(object.private) : false,
+      access: isSet(object.access)
+        ? communityPermissions_AccessFromJSON(object.access)
+        : 0,
     }
-    if (object.private !== undefined && object.private !== null) {
-      message.private = Boolean(object.private)
-    } else {
-      message.private = false
-    }
-    if (object.access !== undefined && object.access !== null) {
-      message.access = communityPermissions_AccessFromJSON(object.access)
-    } else {
-      message.access = 0
-    }
-    return message
   },
 
   toJSON(message: CommunityPermissions): unknown {
@@ -446,28 +486,34 @@ export const CommunityPermissions = {
     return obj
   },
 
-  fromPartial(object: DeepPartial<CommunityPermissions>): CommunityPermissions {
-    const message = { ...baseCommunityPermissions } as CommunityPermissions
-    if (object.ensOnly !== undefined && object.ensOnly !== null) {
-      message.ensOnly = object.ensOnly
-    } else {
-      message.ensOnly = false
-    }
-    if (object.private !== undefined && object.private !== null) {
-      message.private = object.private
-    } else {
-      message.private = false
-    }
-    if (object.access !== undefined && object.access !== null) {
-      message.access = object.access
-    } else {
-      message.access = 0
-    }
+  fromPartial<I extends Exact<DeepPartial<CommunityPermissions>, I>>(
+    object: I
+  ): CommunityPermissions {
+    const message = createBaseCommunityPermissions()
+    message.ensOnly = object.ensOnly ?? false
+    message.private = object.private ?? false
+    message.access = object.access ?? 0
     return message
   },
 }
 
-const baseCommunityDescription: object = { clock: 0, banList: '' }
+function createBaseCommunityDescription(): CommunityDescription {
+  return {
+    clock: 0,
+    members: {},
+    permissions: undefined,
+    identity: undefined,
+    chats: {},
+    banList: [],
+    categories: {},
+    archiveMagnetlinkClock: 0,
+    adminSettings: undefined,
+    introMessage: '',
+    outroMessage: '',
+    encrypted: false,
+    tags: [],
+  }
+}
 
 export const CommunityDescription = {
   encode(
@@ -507,6 +553,27 @@ export const CommunityDescription = {
         writer.uint32(66).fork()
       ).ldelim()
     })
+    if (message.archiveMagnetlinkClock !== 0) {
+      writer.uint32(72).uint64(message.archiveMagnetlinkClock)
+    }
+    if (message.adminSettings !== undefined) {
+      CommunityAdminSettings.encode(
+        message.adminSettings,
+        writer.uint32(82).fork()
+      ).ldelim()
+    }
+    if (message.introMessage !== '') {
+      writer.uint32(90).string(message.introMessage)
+    }
+    if (message.outroMessage !== '') {
+      writer.uint32(98).string(message.outroMessage)
+    }
+    if (message.encrypted === true) {
+      writer.uint32(104).bool(message.encrypted)
+    }
+    for (const v of message.tags) {
+      writer.uint32(114).string(v!)
+    }
     return writer
   },
 
@@ -516,11 +583,7 @@ export const CommunityDescription = {
   ): CommunityDescription {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = { ...baseCommunityDescription } as CommunityDescription
-    message.members = {}
-    message.chats = {}
-    message.banList = []
-    message.categories = {}
+    const message = createBaseCommunityDescription()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -566,6 +629,27 @@ export const CommunityDescription = {
             message.categories[entry8.key] = entry8.value
           }
           break
+        case 9:
+          message.archiveMagnetlinkClock = longToNumber(reader.uint64() as Long)
+          break
+        case 10:
+          message.adminSettings = CommunityAdminSettings.decode(
+            reader,
+            reader.uint32()
+          )
+          break
+        case 11:
+          message.introMessage = reader.string()
+          break
+        case 12:
+          message.outroMessage = reader.string()
+          break
+        case 13:
+          message.encrypted = reader.bool()
+          break
+        case 14:
+          message.tags.push(reader.string())
+          break
         default:
           reader.skipType(tag & 7)
           break
@@ -575,52 +659,64 @@ export const CommunityDescription = {
   },
 
   fromJSON(object: any): CommunityDescription {
-    const message = { ...baseCommunityDescription } as CommunityDescription
-    message.members = {}
-    message.chats = {}
-    message.banList = []
-    message.categories = {}
-    if (object.clock !== undefined && object.clock !== null) {
-      message.clock = Number(object.clock)
-    } else {
-      message.clock = 0
+    return {
+      clock: isSet(object.clock) ? Number(object.clock) : 0,
+      members: isObject(object.members)
+        ? Object.entries(object.members).reduce<{
+            [key: string]: CommunityMember
+          }>((acc, [key, value]) => {
+            acc[key] = CommunityMember.fromJSON(value)
+            return acc
+          }, {})
+        : {},
+      permissions: isSet(object.permissions)
+        ? CommunityPermissions.fromJSON(object.permissions)
+        : undefined,
+      identity: isSet(object.identity)
+        ? ChatIdentity.fromJSON(object.identity)
+        : undefined,
+      chats: isObject(object.chats)
+        ? Object.entries(object.chats).reduce<{ [key: string]: CommunityChat }>(
+            (acc, [key, value]) => {
+              acc[key] = CommunityChat.fromJSON(value)
+              return acc
+            },
+            {}
+          )
+        : {},
+      banList: Array.isArray(object?.banList)
+        ? object.banList.map((e: any) => String(e))
+        : [],
+      categories: isObject(object.categories)
+        ? Object.entries(object.categories).reduce<{
+            [key: string]: CommunityCategory
+          }>((acc, [key, value]) => {
+            acc[key] = CommunityCategory.fromJSON(value)
+            return acc
+          }, {})
+        : {},
+      archiveMagnetlinkClock: isSet(object.archiveMagnetlinkClock)
+        ? Number(object.archiveMagnetlinkClock)
+        : 0,
+      adminSettings: isSet(object.adminSettings)
+        ? CommunityAdminSettings.fromJSON(object.adminSettings)
+        : undefined,
+      introMessage: isSet(object.introMessage)
+        ? String(object.introMessage)
+        : '',
+      outroMessage: isSet(object.outroMessage)
+        ? String(object.outroMessage)
+        : '',
+      encrypted: isSet(object.encrypted) ? Boolean(object.encrypted) : false,
+      tags: Array.isArray(object?.tags)
+        ? object.tags.map((e: any) => String(e))
+        : [],
     }
-    if (object.members !== undefined && object.members !== null) {
-      Object.entries(object.members).forEach(([key, value]) => {
-        message.members[key] = CommunityMember.fromJSON(value)
-      })
-    }
-    if (object.permissions !== undefined && object.permissions !== null) {
-      message.permissions = CommunityPermissions.fromJSON(object.permissions)
-    } else {
-      message.permissions = undefined
-    }
-    if (object.identity !== undefined && object.identity !== null) {
-      message.identity = ChatIdentity.fromJSON(object.identity)
-    } else {
-      message.identity = undefined
-    }
-    if (object.chats !== undefined && object.chats !== null) {
-      Object.entries(object.chats).forEach(([key, value]) => {
-        message.chats[key] = CommunityChat.fromJSON(value)
-      })
-    }
-    if (object.banList !== undefined && object.banList !== null) {
-      for (const e of object.banList) {
-        message.banList.push(String(e))
-      }
-    }
-    if (object.categories !== undefined && object.categories !== null) {
-      Object.entries(object.categories).forEach(([key, value]) => {
-        message.categories[key] = CommunityCategory.fromJSON(value)
-      })
-    }
-    return message
   },
 
   toJSON(message: CommunityDescription): unknown {
     const obj: any = {}
-    message.clock !== undefined && (obj.clock = message.clock)
+    message.clock !== undefined && (obj.clock = Math.round(message.clock))
     obj.members = {}
     if (message.members) {
       Object.entries(message.members).forEach(([k, v]) => {
@@ -652,61 +748,79 @@ export const CommunityDescription = {
         obj.categories[k] = CommunityCategory.toJSON(v)
       })
     }
+    message.archiveMagnetlinkClock !== undefined &&
+      (obj.archiveMagnetlinkClock = Math.round(message.archiveMagnetlinkClock))
+    message.adminSettings !== undefined &&
+      (obj.adminSettings = message.adminSettings
+        ? CommunityAdminSettings.toJSON(message.adminSettings)
+        : undefined)
+    message.introMessage !== undefined &&
+      (obj.introMessage = message.introMessage)
+    message.outroMessage !== undefined &&
+      (obj.outroMessage = message.outroMessage)
+    message.encrypted !== undefined && (obj.encrypted = message.encrypted)
+    if (message.tags) {
+      obj.tags = message.tags.map(e => e)
+    } else {
+      obj.tags = []
+    }
     return obj
   },
 
-  fromPartial(object: DeepPartial<CommunityDescription>): CommunityDescription {
-    const message = { ...baseCommunityDescription } as CommunityDescription
-    message.members = {}
-    message.chats = {}
-    message.banList = []
-    message.categories = {}
-    if (object.clock !== undefined && object.clock !== null) {
-      message.clock = object.clock
-    } else {
-      message.clock = 0
-    }
-    if (object.members !== undefined && object.members !== null) {
-      Object.entries(object.members).forEach(([key, value]) => {
-        if (value !== undefined) {
-          message.members[key] = CommunityMember.fromPartial(value)
-        }
-      })
-    }
-    if (object.permissions !== undefined && object.permissions !== null) {
-      message.permissions = CommunityPermissions.fromPartial(object.permissions)
-    } else {
-      message.permissions = undefined
-    }
-    if (object.identity !== undefined && object.identity !== null) {
-      message.identity = ChatIdentity.fromPartial(object.identity)
-    } else {
-      message.identity = undefined
-    }
-    if (object.chats !== undefined && object.chats !== null) {
-      Object.entries(object.chats).forEach(([key, value]) => {
-        if (value !== undefined) {
-          message.chats[key] = CommunityChat.fromPartial(value)
-        }
-      })
-    }
-    if (object.banList !== undefined && object.banList !== null) {
-      for (const e of object.banList) {
-        message.banList.push(e)
+  fromPartial<I extends Exact<DeepPartial<CommunityDescription>, I>>(
+    object: I
+  ): CommunityDescription {
+    const message = createBaseCommunityDescription()
+    message.clock = object.clock ?? 0
+    message.members = Object.entries(object.members ?? {}).reduce<{
+      [key: string]: CommunityMember
+    }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = CommunityMember.fromPartial(value)
       }
-    }
-    if (object.categories !== undefined && object.categories !== null) {
-      Object.entries(object.categories).forEach(([key, value]) => {
-        if (value !== undefined) {
-          message.categories[key] = CommunityCategory.fromPartial(value)
-        }
-      })
-    }
+      return acc
+    }, {})
+    message.permissions =
+      object.permissions !== undefined && object.permissions !== null
+        ? CommunityPermissions.fromPartial(object.permissions)
+        : undefined
+    message.identity =
+      object.identity !== undefined && object.identity !== null
+        ? ChatIdentity.fromPartial(object.identity)
+        : undefined
+    message.chats = Object.entries(object.chats ?? {}).reduce<{
+      [key: string]: CommunityChat
+    }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = CommunityChat.fromPartial(value)
+      }
+      return acc
+    }, {})
+    message.banList = object.banList?.map(e => e) || []
+    message.categories = Object.entries(object.categories ?? {}).reduce<{
+      [key: string]: CommunityCategory
+    }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = CommunityCategory.fromPartial(value)
+      }
+      return acc
+    }, {})
+    message.archiveMagnetlinkClock = object.archiveMagnetlinkClock ?? 0
+    message.adminSettings =
+      object.adminSettings !== undefined && object.adminSettings !== null
+        ? CommunityAdminSettings.fromPartial(object.adminSettings)
+        : undefined
+    message.introMessage = object.introMessage ?? ''
+    message.outroMessage = object.outroMessage ?? ''
+    message.encrypted = object.encrypted ?? false
+    message.tags = object.tags?.map(e => e) || []
     return message
   },
 }
 
-const baseCommunityDescription_MembersEntry: object = { key: '' }
+function createBaseCommunityDescription_MembersEntry(): CommunityDescription_MembersEntry {
+  return { key: '', value: undefined }
+}
 
 export const CommunityDescription_MembersEntry = {
   encode(
@@ -728,9 +842,7 @@ export const CommunityDescription_MembersEntry = {
   ): CommunityDescription_MembersEntry {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = {
-      ...baseCommunityDescription_MembersEntry,
-    } as CommunityDescription_MembersEntry
+    const message = createBaseCommunityDescription_MembersEntry()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -749,20 +861,12 @@ export const CommunityDescription_MembersEntry = {
   },
 
   fromJSON(object: any): CommunityDescription_MembersEntry {
-    const message = {
-      ...baseCommunityDescription_MembersEntry,
-    } as CommunityDescription_MembersEntry
-    if (object.key !== undefined && object.key !== null) {
-      message.key = String(object.key)
-    } else {
-      message.key = ''
+    return {
+      key: isSet(object.key) ? String(object.key) : '',
+      value: isSet(object.value)
+        ? CommunityMember.fromJSON(object.value)
+        : undefined,
     }
-    if (object.value !== undefined && object.value !== null) {
-      message.value = CommunityMember.fromJSON(object.value)
-    } else {
-      message.value = undefined
-    }
-    return message
   },
 
   toJSON(message: CommunityDescription_MembersEntry): unknown {
@@ -775,27 +879,22 @@ export const CommunityDescription_MembersEntry = {
     return obj
   },
 
-  fromPartial(
-    object: DeepPartial<CommunityDescription_MembersEntry>
-  ): CommunityDescription_MembersEntry {
-    const message = {
-      ...baseCommunityDescription_MembersEntry,
-    } as CommunityDescription_MembersEntry
-    if (object.key !== undefined && object.key !== null) {
-      message.key = object.key
-    } else {
-      message.key = ''
-    }
-    if (object.value !== undefined && object.value !== null) {
-      message.value = CommunityMember.fromPartial(object.value)
-    } else {
-      message.value = undefined
-    }
+  fromPartial<
+    I extends Exact<DeepPartial<CommunityDescription_MembersEntry>, I>
+  >(object: I): CommunityDescription_MembersEntry {
+    const message = createBaseCommunityDescription_MembersEntry()
+    message.key = object.key ?? ''
+    message.value =
+      object.value !== undefined && object.value !== null
+        ? CommunityMember.fromPartial(object.value)
+        : undefined
     return message
   },
 }
 
-const baseCommunityDescription_ChatsEntry: object = { key: '' }
+function createBaseCommunityDescription_ChatsEntry(): CommunityDescription_ChatsEntry {
+  return { key: '', value: undefined }
+}
 
 export const CommunityDescription_ChatsEntry = {
   encode(
@@ -817,9 +916,7 @@ export const CommunityDescription_ChatsEntry = {
   ): CommunityDescription_ChatsEntry {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = {
-      ...baseCommunityDescription_ChatsEntry,
-    } as CommunityDescription_ChatsEntry
+    const message = createBaseCommunityDescription_ChatsEntry()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -838,20 +935,12 @@ export const CommunityDescription_ChatsEntry = {
   },
 
   fromJSON(object: any): CommunityDescription_ChatsEntry {
-    const message = {
-      ...baseCommunityDescription_ChatsEntry,
-    } as CommunityDescription_ChatsEntry
-    if (object.key !== undefined && object.key !== null) {
-      message.key = String(object.key)
-    } else {
-      message.key = ''
+    return {
+      key: isSet(object.key) ? String(object.key) : '',
+      value: isSet(object.value)
+        ? CommunityChat.fromJSON(object.value)
+        : undefined,
     }
-    if (object.value !== undefined && object.value !== null) {
-      message.value = CommunityChat.fromJSON(object.value)
-    } else {
-      message.value = undefined
-    }
-    return message
   },
 
   toJSON(message: CommunityDescription_ChatsEntry): unknown {
@@ -864,27 +953,22 @@ export const CommunityDescription_ChatsEntry = {
     return obj
   },
 
-  fromPartial(
-    object: DeepPartial<CommunityDescription_ChatsEntry>
+  fromPartial<I extends Exact<DeepPartial<CommunityDescription_ChatsEntry>, I>>(
+    object: I
   ): CommunityDescription_ChatsEntry {
-    const message = {
-      ...baseCommunityDescription_ChatsEntry,
-    } as CommunityDescription_ChatsEntry
-    if (object.key !== undefined && object.key !== null) {
-      message.key = object.key
-    } else {
-      message.key = ''
-    }
-    if (object.value !== undefined && object.value !== null) {
-      message.value = CommunityChat.fromPartial(object.value)
-    } else {
-      message.value = undefined
-    }
+    const message = createBaseCommunityDescription_ChatsEntry()
+    message.key = object.key ?? ''
+    message.value =
+      object.value !== undefined && object.value !== null
+        ? CommunityChat.fromPartial(object.value)
+        : undefined
     return message
   },
 }
 
-const baseCommunityDescription_CategoriesEntry: object = { key: '' }
+function createBaseCommunityDescription_CategoriesEntry(): CommunityDescription_CategoriesEntry {
+  return { key: '', value: undefined }
+}
 
 export const CommunityDescription_CategoriesEntry = {
   encode(
@@ -906,9 +990,7 @@ export const CommunityDescription_CategoriesEntry = {
   ): CommunityDescription_CategoriesEntry {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = {
-      ...baseCommunityDescription_CategoriesEntry,
-    } as CommunityDescription_CategoriesEntry
+    const message = createBaseCommunityDescription_CategoriesEntry()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -927,20 +1009,12 @@ export const CommunityDescription_CategoriesEntry = {
   },
 
   fromJSON(object: any): CommunityDescription_CategoriesEntry {
-    const message = {
-      ...baseCommunityDescription_CategoriesEntry,
-    } as CommunityDescription_CategoriesEntry
-    if (object.key !== undefined && object.key !== null) {
-      message.key = String(object.key)
-    } else {
-      message.key = ''
+    return {
+      key: isSet(object.key) ? String(object.key) : '',
+      value: isSet(object.value)
+        ? CommunityCategory.fromJSON(object.value)
+        : undefined,
     }
-    if (object.value !== undefined && object.value !== null) {
-      message.value = CommunityCategory.fromJSON(object.value)
-    } else {
-      message.value = undefined
-    }
-    return message
   },
 
   toJSON(message: CommunityDescription_CategoriesEntry): unknown {
@@ -953,27 +1027,89 @@ export const CommunityDescription_CategoriesEntry = {
     return obj
   },
 
-  fromPartial(
-    object: DeepPartial<CommunityDescription_CategoriesEntry>
-  ): CommunityDescription_CategoriesEntry {
-    const message = {
-      ...baseCommunityDescription_CategoriesEntry,
-    } as CommunityDescription_CategoriesEntry
-    if (object.key !== undefined && object.key !== null) {
-      message.key = object.key
-    } else {
-      message.key = ''
-    }
-    if (object.value !== undefined && object.value !== null) {
-      message.value = CommunityCategory.fromPartial(object.value)
-    } else {
-      message.value = undefined
-    }
+  fromPartial<
+    I extends Exact<DeepPartial<CommunityDescription_CategoriesEntry>, I>
+  >(object: I): CommunityDescription_CategoriesEntry {
+    const message = createBaseCommunityDescription_CategoriesEntry()
+    message.key = object.key ?? ''
+    message.value =
+      object.value !== undefined && object.value !== null
+        ? CommunityCategory.fromPartial(object.value)
+        : undefined
     return message
   },
 }
 
-const baseCommunityChat: object = { categoryId: '', position: 0 }
+function createBaseCommunityAdminSettings(): CommunityAdminSettings {
+  return { pinMessageAllMembersEnabled: false }
+}
+
+export const CommunityAdminSettings = {
+  encode(
+    message: CommunityAdminSettings,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.pinMessageAllMembersEnabled === true) {
+      writer.uint32(8).bool(message.pinMessageAllMembersEnabled)
+    }
+    return writer
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): CommunityAdminSettings {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseCommunityAdminSettings()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.pinMessageAllMembersEnabled = reader.bool()
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): CommunityAdminSettings {
+    return {
+      pinMessageAllMembersEnabled: isSet(object.pinMessageAllMembersEnabled)
+        ? Boolean(object.pinMessageAllMembersEnabled)
+        : false,
+    }
+  },
+
+  toJSON(message: CommunityAdminSettings): unknown {
+    const obj: any = {}
+    message.pinMessageAllMembersEnabled !== undefined &&
+      (obj.pinMessageAllMembersEnabled = message.pinMessageAllMembersEnabled)
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<CommunityAdminSettings>, I>>(
+    object: I
+  ): CommunityAdminSettings {
+    const message = createBaseCommunityAdminSettings()
+    message.pinMessageAllMembersEnabled =
+      object.pinMessageAllMembersEnabled ?? false
+    return message
+  },
+}
+
+function createBaseCommunityChat(): CommunityChat {
+  return {
+    members: {},
+    permissions: undefined,
+    identity: undefined,
+    categoryId: '',
+    position: 0,
+  }
+}
 
 export const CommunityChat = {
   encode(
@@ -1007,8 +1143,7 @@ export const CommunityChat = {
   decode(input: _m0.Reader | Uint8Array, length?: number): CommunityChat {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = { ...baseCommunityChat } as CommunityChat
-    message.members = {}
+    const message = createBaseCommunityChat()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -1045,34 +1180,24 @@ export const CommunityChat = {
   },
 
   fromJSON(object: any): CommunityChat {
-    const message = { ...baseCommunityChat } as CommunityChat
-    message.members = {}
-    if (object.members !== undefined && object.members !== null) {
-      Object.entries(object.members).forEach(([key, value]) => {
-        message.members[key] = CommunityMember.fromJSON(value)
-      })
+    return {
+      members: isObject(object.members)
+        ? Object.entries(object.members).reduce<{
+            [key: string]: CommunityMember
+          }>((acc, [key, value]) => {
+            acc[key] = CommunityMember.fromJSON(value)
+            return acc
+          }, {})
+        : {},
+      permissions: isSet(object.permissions)
+        ? CommunityPermissions.fromJSON(object.permissions)
+        : undefined,
+      identity: isSet(object.identity)
+        ? ChatIdentity.fromJSON(object.identity)
+        : undefined,
+      categoryId: isSet(object.categoryId) ? String(object.categoryId) : '',
+      position: isSet(object.position) ? Number(object.position) : 0,
     }
-    if (object.permissions !== undefined && object.permissions !== null) {
-      message.permissions = CommunityPermissions.fromJSON(object.permissions)
-    } else {
-      message.permissions = undefined
-    }
-    if (object.identity !== undefined && object.identity !== null) {
-      message.identity = ChatIdentity.fromJSON(object.identity)
-    } else {
-      message.identity = undefined
-    }
-    if (object.categoryId !== undefined && object.categoryId !== null) {
-      message.categoryId = String(object.categoryId)
-    } else {
-      message.categoryId = ''
-    }
-    if (object.position !== undefined && object.position !== null) {
-      message.position = Number(object.position)
-    } else {
-      message.position = 0
-    }
-    return message
   },
 
   toJSON(message: CommunityChat): unknown {
@@ -1092,45 +1217,40 @@ export const CommunityChat = {
         ? ChatIdentity.toJSON(message.identity)
         : undefined)
     message.categoryId !== undefined && (obj.categoryId = message.categoryId)
-    message.position !== undefined && (obj.position = message.position)
+    message.position !== undefined &&
+      (obj.position = Math.round(message.position))
     return obj
   },
 
-  fromPartial(object: DeepPartial<CommunityChat>): CommunityChat {
-    const message = { ...baseCommunityChat } as CommunityChat
-    message.members = {}
-    if (object.members !== undefined && object.members !== null) {
-      Object.entries(object.members).forEach(([key, value]) => {
-        if (value !== undefined) {
-          message.members[key] = CommunityMember.fromPartial(value)
-        }
-      })
-    }
-    if (object.permissions !== undefined && object.permissions !== null) {
-      message.permissions = CommunityPermissions.fromPartial(object.permissions)
-    } else {
-      message.permissions = undefined
-    }
-    if (object.identity !== undefined && object.identity !== null) {
-      message.identity = ChatIdentity.fromPartial(object.identity)
-    } else {
-      message.identity = undefined
-    }
-    if (object.categoryId !== undefined && object.categoryId !== null) {
-      message.categoryId = object.categoryId
-    } else {
-      message.categoryId = ''
-    }
-    if (object.position !== undefined && object.position !== null) {
-      message.position = object.position
-    } else {
-      message.position = 0
-    }
+  fromPartial<I extends Exact<DeepPartial<CommunityChat>, I>>(
+    object: I
+  ): CommunityChat {
+    const message = createBaseCommunityChat()
+    message.members = Object.entries(object.members ?? {}).reduce<{
+      [key: string]: CommunityMember
+    }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = CommunityMember.fromPartial(value)
+      }
+      return acc
+    }, {})
+    message.permissions =
+      object.permissions !== undefined && object.permissions !== null
+        ? CommunityPermissions.fromPartial(object.permissions)
+        : undefined
+    message.identity =
+      object.identity !== undefined && object.identity !== null
+        ? ChatIdentity.fromPartial(object.identity)
+        : undefined
+    message.categoryId = object.categoryId ?? ''
+    message.position = object.position ?? 0
     return message
   },
 }
 
-const baseCommunityChat_MembersEntry: object = { key: '' }
+function createBaseCommunityChat_MembersEntry(): CommunityChat_MembersEntry {
+  return { key: '', value: undefined }
+}
 
 export const CommunityChat_MembersEntry = {
   encode(
@@ -1152,9 +1272,7 @@ export const CommunityChat_MembersEntry = {
   ): CommunityChat_MembersEntry {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = {
-      ...baseCommunityChat_MembersEntry,
-    } as CommunityChat_MembersEntry
+    const message = createBaseCommunityChat_MembersEntry()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -1173,20 +1291,12 @@ export const CommunityChat_MembersEntry = {
   },
 
   fromJSON(object: any): CommunityChat_MembersEntry {
-    const message = {
-      ...baseCommunityChat_MembersEntry,
-    } as CommunityChat_MembersEntry
-    if (object.key !== undefined && object.key !== null) {
-      message.key = String(object.key)
-    } else {
-      message.key = ''
+    return {
+      key: isSet(object.key) ? String(object.key) : '',
+      value: isSet(object.value)
+        ? CommunityMember.fromJSON(object.value)
+        : undefined,
     }
-    if (object.value !== undefined && object.value !== null) {
-      message.value = CommunityMember.fromJSON(object.value)
-    } else {
-      message.value = undefined
-    }
-    return message
   },
 
   toJSON(message: CommunityChat_MembersEntry): unknown {
@@ -1199,27 +1309,22 @@ export const CommunityChat_MembersEntry = {
     return obj
   },
 
-  fromPartial(
-    object: DeepPartial<CommunityChat_MembersEntry>
+  fromPartial<I extends Exact<DeepPartial<CommunityChat_MembersEntry>, I>>(
+    object: I
   ): CommunityChat_MembersEntry {
-    const message = {
-      ...baseCommunityChat_MembersEntry,
-    } as CommunityChat_MembersEntry
-    if (object.key !== undefined && object.key !== null) {
-      message.key = object.key
-    } else {
-      message.key = ''
-    }
-    if (object.value !== undefined && object.value !== null) {
-      message.value = CommunityMember.fromPartial(object.value)
-    } else {
-      message.value = undefined
-    }
+    const message = createBaseCommunityChat_MembersEntry()
+    message.key = object.key ?? ''
+    message.value =
+      object.value !== undefined && object.value !== null
+        ? CommunityMember.fromPartial(object.value)
+        : undefined
     return message
   },
 }
 
-const baseCommunityCategory: object = { categoryId: '', name: '', position: 0 }
+function createBaseCommunityCategory(): CommunityCategory {
+  return { categoryId: '', name: '', position: 0 }
+}
 
 export const CommunityCategory = {
   encode(
@@ -1241,7 +1346,7 @@ export const CommunityCategory = {
   decode(input: _m0.Reader | Uint8Array, length?: number): CommunityCategory {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = { ...baseCommunityCategory } as CommunityCategory
+    const message = createBaseCommunityCategory()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -1263,55 +1368,41 @@ export const CommunityCategory = {
   },
 
   fromJSON(object: any): CommunityCategory {
-    const message = { ...baseCommunityCategory } as CommunityCategory
-    if (object.categoryId !== undefined && object.categoryId !== null) {
-      message.categoryId = String(object.categoryId)
-    } else {
-      message.categoryId = ''
+    return {
+      categoryId: isSet(object.categoryId) ? String(object.categoryId) : '',
+      name: isSet(object.name) ? String(object.name) : '',
+      position: isSet(object.position) ? Number(object.position) : 0,
     }
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name)
-    } else {
-      message.name = ''
-    }
-    if (object.position !== undefined && object.position !== null) {
-      message.position = Number(object.position)
-    } else {
-      message.position = 0
-    }
-    return message
   },
 
   toJSON(message: CommunityCategory): unknown {
     const obj: any = {}
     message.categoryId !== undefined && (obj.categoryId = message.categoryId)
     message.name !== undefined && (obj.name = message.name)
-    message.position !== undefined && (obj.position = message.position)
+    message.position !== undefined &&
+      (obj.position = Math.round(message.position))
     return obj
   },
 
-  fromPartial(object: DeepPartial<CommunityCategory>): CommunityCategory {
-    const message = { ...baseCommunityCategory } as CommunityCategory
-    if (object.categoryId !== undefined && object.categoryId !== null) {
-      message.categoryId = object.categoryId
-    } else {
-      message.categoryId = ''
-    }
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name
-    } else {
-      message.name = ''
-    }
-    if (object.position !== undefined && object.position !== null) {
-      message.position = object.position
-    } else {
-      message.position = 0
-    }
+  fromPartial<I extends Exact<DeepPartial<CommunityCategory>, I>>(
+    object: I
+  ): CommunityCategory {
+    const message = createBaseCommunityCategory()
+    message.categoryId = object.categoryId ?? ''
+    message.name = object.name ?? ''
+    message.position = object.position ?? 0
     return message
   },
 }
 
-const baseCommunityInvitation: object = { chatId: '' }
+function createBaseCommunityInvitation(): CommunityInvitation {
+  return {
+    communityDescription: new Uint8Array(),
+    grant: new Uint8Array(),
+    chatId: '',
+    publicKey: new Uint8Array(),
+  }
+}
 
 export const CommunityInvitation = {
   encode(
@@ -1336,10 +1427,7 @@ export const CommunityInvitation = {
   decode(input: _m0.Reader | Uint8Array, length?: number): CommunityInvitation {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = { ...baseCommunityInvitation } as CommunityInvitation
-    message.communityDescription = new Uint8Array()
-    message.grant = new Uint8Array()
-    message.publicKey = new Uint8Array()
+    const message = createBaseCommunityInvitation()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -1364,30 +1452,18 @@ export const CommunityInvitation = {
   },
 
   fromJSON(object: any): CommunityInvitation {
-    const message = { ...baseCommunityInvitation } as CommunityInvitation
-    message.communityDescription = new Uint8Array()
-    message.grant = new Uint8Array()
-    message.publicKey = new Uint8Array()
-    if (
-      object.communityDescription !== undefined &&
-      object.communityDescription !== null
-    ) {
-      message.communityDescription = bytesFromBase64(
-        object.communityDescription
-      )
+    return {
+      communityDescription: isSet(object.communityDescription)
+        ? bytesFromBase64(object.communityDescription)
+        : new Uint8Array(),
+      grant: isSet(object.grant)
+        ? bytesFromBase64(object.grant)
+        : new Uint8Array(),
+      chatId: isSet(object.chatId) ? String(object.chatId) : '',
+      publicKey: isSet(object.publicKey)
+        ? bytesFromBase64(object.publicKey)
+        : new Uint8Array(),
     }
-    if (object.grant !== undefined && object.grant !== null) {
-      message.grant = bytesFromBase64(object.grant)
-    }
-    if (object.chatId !== undefined && object.chatId !== null) {
-      message.chatId = String(object.chatId)
-    } else {
-      message.chatId = ''
-    }
-    if (object.publicKey !== undefined && object.publicKey !== null) {
-      message.publicKey = bytesFromBase64(object.publicKey)
-    }
-    return message
   },
 
   toJSON(message: CommunityInvitation): unknown {
@@ -1410,39 +1486,27 @@ export const CommunityInvitation = {
     return obj
   },
 
-  fromPartial(object: DeepPartial<CommunityInvitation>): CommunityInvitation {
-    const message = { ...baseCommunityInvitation } as CommunityInvitation
-    if (
-      object.communityDescription !== undefined &&
-      object.communityDescription !== null
-    ) {
-      message.communityDescription = object.communityDescription
-    } else {
-      message.communityDescription = new Uint8Array()
-    }
-    if (object.grant !== undefined && object.grant !== null) {
-      message.grant = object.grant
-    } else {
-      message.grant = new Uint8Array()
-    }
-    if (object.chatId !== undefined && object.chatId !== null) {
-      message.chatId = object.chatId
-    } else {
-      message.chatId = ''
-    }
-    if (object.publicKey !== undefined && object.publicKey !== null) {
-      message.publicKey = object.publicKey
-    } else {
-      message.publicKey = new Uint8Array()
-    }
+  fromPartial<I extends Exact<DeepPartial<CommunityInvitation>, I>>(
+    object: I
+  ): CommunityInvitation {
+    const message = createBaseCommunityInvitation()
+    message.communityDescription =
+      object.communityDescription ?? new Uint8Array()
+    message.grant = object.grant ?? new Uint8Array()
+    message.chatId = object.chatId ?? ''
+    message.publicKey = object.publicKey ?? new Uint8Array()
     return message
   },
 }
 
-const baseCommunityRequestToJoin: object = {
-  clock: 0,
-  ensName: '',
-  chatId: '',
+function createBaseCommunityRequestToJoin(): CommunityRequestToJoin {
+  return {
+    clock: 0,
+    ensName: '',
+    chatId: '',
+    communityId: new Uint8Array(),
+    displayName: '',
+  }
 }
 
 export const CommunityRequestToJoin = {
@@ -1462,6 +1526,9 @@ export const CommunityRequestToJoin = {
     if (message.communityId.length !== 0) {
       writer.uint32(34).bytes(message.communityId)
     }
+    if (message.displayName !== '') {
+      writer.uint32(42).string(message.displayName)
+    }
     return writer
   },
 
@@ -1471,8 +1538,7 @@ export const CommunityRequestToJoin = {
   ): CommunityRequestToJoin {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = { ...baseCommunityRequestToJoin } as CommunityRequestToJoin
-    message.communityId = new Uint8Array()
+    const message = createBaseCommunityRequestToJoin()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -1488,6 +1554,9 @@ export const CommunityRequestToJoin = {
         case 4:
           message.communityId = reader.bytes()
           break
+        case 5:
+          message.displayName = reader.string()
+          break
         default:
           reader.skipType(tag & 7)
           break
@@ -1497,32 +1566,20 @@ export const CommunityRequestToJoin = {
   },
 
   fromJSON(object: any): CommunityRequestToJoin {
-    const message = { ...baseCommunityRequestToJoin } as CommunityRequestToJoin
-    message.communityId = new Uint8Array()
-    if (object.clock !== undefined && object.clock !== null) {
-      message.clock = Number(object.clock)
-    } else {
-      message.clock = 0
+    return {
+      clock: isSet(object.clock) ? Number(object.clock) : 0,
+      ensName: isSet(object.ensName) ? String(object.ensName) : '',
+      chatId: isSet(object.chatId) ? String(object.chatId) : '',
+      communityId: isSet(object.communityId)
+        ? bytesFromBase64(object.communityId)
+        : new Uint8Array(),
+      displayName: isSet(object.displayName) ? String(object.displayName) : '',
     }
-    if (object.ensName !== undefined && object.ensName !== null) {
-      message.ensName = String(object.ensName)
-    } else {
-      message.ensName = ''
-    }
-    if (object.chatId !== undefined && object.chatId !== null) {
-      message.chatId = String(object.chatId)
-    } else {
-      message.chatId = ''
-    }
-    if (object.communityId !== undefined && object.communityId !== null) {
-      message.communityId = bytesFromBase64(object.communityId)
-    }
-    return message
   },
 
   toJSON(message: CommunityRequestToJoin): unknown {
     const obj: any = {}
-    message.clock !== undefined && (obj.clock = message.clock)
+    message.clock !== undefined && (obj.clock = Math.round(message.clock))
     message.ensName !== undefined && (obj.ensName = message.ensName)
     message.chatId !== undefined && (obj.chatId = message.chatId)
     message.communityId !== undefined &&
@@ -1531,40 +1588,138 @@ export const CommunityRequestToJoin = {
           ? message.communityId
           : new Uint8Array()
       ))
+    message.displayName !== undefined && (obj.displayName = message.displayName)
     return obj
   },
 
-  fromPartial(
-    object: DeepPartial<CommunityRequestToJoin>
+  fromPartial<I extends Exact<DeepPartial<CommunityRequestToJoin>, I>>(
+    object: I
   ): CommunityRequestToJoin {
-    const message = { ...baseCommunityRequestToJoin } as CommunityRequestToJoin
-    if (object.clock !== undefined && object.clock !== null) {
-      message.clock = object.clock
-    } else {
-      message.clock = 0
-    }
-    if (object.ensName !== undefined && object.ensName !== null) {
-      message.ensName = object.ensName
-    } else {
-      message.ensName = ''
-    }
-    if (object.chatId !== undefined && object.chatId !== null) {
-      message.chatId = object.chatId
-    } else {
-      message.chatId = ''
-    }
-    if (object.communityId !== undefined && object.communityId !== null) {
-      message.communityId = object.communityId
-    } else {
-      message.communityId = new Uint8Array()
-    }
+    const message = createBaseCommunityRequestToJoin()
+    message.clock = object.clock ?? 0
+    message.ensName = object.ensName ?? ''
+    message.chatId = object.chatId ?? ''
+    message.communityId = object.communityId ?? new Uint8Array()
+    message.displayName = object.displayName ?? ''
     return message
   },
 }
 
-const baseCommunityRequestToJoinResponse: object = {
-  clock: 0,
-  accepted: false,
+function createBaseCommunityCancelRequestToJoin(): CommunityCancelRequestToJoin {
+  return {
+    clock: 0,
+    ensName: '',
+    chatId: '',
+    communityId: new Uint8Array(),
+    displayName: '',
+  }
+}
+
+export const CommunityCancelRequestToJoin = {
+  encode(
+    message: CommunityCancelRequestToJoin,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.clock !== 0) {
+      writer.uint32(8).uint64(message.clock)
+    }
+    if (message.ensName !== '') {
+      writer.uint32(18).string(message.ensName)
+    }
+    if (message.chatId !== '') {
+      writer.uint32(26).string(message.chatId)
+    }
+    if (message.communityId.length !== 0) {
+      writer.uint32(34).bytes(message.communityId)
+    }
+    if (message.displayName !== '') {
+      writer.uint32(42).string(message.displayName)
+    }
+    return writer
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): CommunityCancelRequestToJoin {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseCommunityCancelRequestToJoin()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.clock = longToNumber(reader.uint64() as Long)
+          break
+        case 2:
+          message.ensName = reader.string()
+          break
+        case 3:
+          message.chatId = reader.string()
+          break
+        case 4:
+          message.communityId = reader.bytes()
+          break
+        case 5:
+          message.displayName = reader.string()
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): CommunityCancelRequestToJoin {
+    return {
+      clock: isSet(object.clock) ? Number(object.clock) : 0,
+      ensName: isSet(object.ensName) ? String(object.ensName) : '',
+      chatId: isSet(object.chatId) ? String(object.chatId) : '',
+      communityId: isSet(object.communityId)
+        ? bytesFromBase64(object.communityId)
+        : new Uint8Array(),
+      displayName: isSet(object.displayName) ? String(object.displayName) : '',
+    }
+  },
+
+  toJSON(message: CommunityCancelRequestToJoin): unknown {
+    const obj: any = {}
+    message.clock !== undefined && (obj.clock = Math.round(message.clock))
+    message.ensName !== undefined && (obj.ensName = message.ensName)
+    message.chatId !== undefined && (obj.chatId = message.chatId)
+    message.communityId !== undefined &&
+      (obj.communityId = base64FromBytes(
+        message.communityId !== undefined
+          ? message.communityId
+          : new Uint8Array()
+      ))
+    message.displayName !== undefined && (obj.displayName = message.displayName)
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<CommunityCancelRequestToJoin>, I>>(
+    object: I
+  ): CommunityCancelRequestToJoin {
+    const message = createBaseCommunityCancelRequestToJoin()
+    message.clock = object.clock ?? 0
+    message.ensName = object.ensName ?? ''
+    message.chatId = object.chatId ?? ''
+    message.communityId = object.communityId ?? new Uint8Array()
+    message.displayName = object.displayName ?? ''
+    return message
+  },
+}
+
+function createBaseCommunityRequestToJoinResponse(): CommunityRequestToJoinResponse {
+  return {
+    clock: 0,
+    community: undefined,
+    accepted: false,
+    grant: new Uint8Array(),
+    communityId: new Uint8Array(),
+    magnetUri: '',
+  }
 }
 
 export const CommunityRequestToJoinResponse = {
@@ -1587,6 +1742,12 @@ export const CommunityRequestToJoinResponse = {
     if (message.grant.length !== 0) {
       writer.uint32(34).bytes(message.grant)
     }
+    if (message.communityId.length !== 0) {
+      writer.uint32(42).bytes(message.communityId)
+    }
+    if (message.magnetUri !== '') {
+      writer.uint32(50).string(message.magnetUri)
+    }
     return writer
   },
 
@@ -1596,10 +1757,7 @@ export const CommunityRequestToJoinResponse = {
   ): CommunityRequestToJoinResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = {
-      ...baseCommunityRequestToJoinResponse,
-    } as CommunityRequestToJoinResponse
-    message.grant = new Uint8Array()
+    const message = createBaseCommunityRequestToJoinResponse()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -1618,6 +1776,12 @@ export const CommunityRequestToJoinResponse = {
         case 4:
           message.grant = reader.bytes()
           break
+        case 5:
+          message.communityId = reader.bytes()
+          break
+        case 6:
+          message.magnetUri = reader.string()
+          break
         default:
           reader.skipType(tag & 7)
           break
@@ -1627,34 +1791,25 @@ export const CommunityRequestToJoinResponse = {
   },
 
   fromJSON(object: any): CommunityRequestToJoinResponse {
-    const message = {
-      ...baseCommunityRequestToJoinResponse,
-    } as CommunityRequestToJoinResponse
-    message.grant = new Uint8Array()
-    if (object.clock !== undefined && object.clock !== null) {
-      message.clock = Number(object.clock)
-    } else {
-      message.clock = 0
+    return {
+      clock: isSet(object.clock) ? Number(object.clock) : 0,
+      community: isSet(object.community)
+        ? CommunityDescription.fromJSON(object.community)
+        : undefined,
+      accepted: isSet(object.accepted) ? Boolean(object.accepted) : false,
+      grant: isSet(object.grant)
+        ? bytesFromBase64(object.grant)
+        : new Uint8Array(),
+      communityId: isSet(object.communityId)
+        ? bytesFromBase64(object.communityId)
+        : new Uint8Array(),
+      magnetUri: isSet(object.magnetUri) ? String(object.magnetUri) : '',
     }
-    if (object.community !== undefined && object.community !== null) {
-      message.community = CommunityDescription.fromJSON(object.community)
-    } else {
-      message.community = undefined
-    }
-    if (object.accepted !== undefined && object.accepted !== null) {
-      message.accepted = Boolean(object.accepted)
-    } else {
-      message.accepted = false
-    }
-    if (object.grant !== undefined && object.grant !== null) {
-      message.grant = bytesFromBase64(object.grant)
-    }
-    return message
   },
 
   toJSON(message: CommunityRequestToJoinResponse): unknown {
     const obj: any = {}
-    message.clock !== undefined && (obj.clock = message.clock)
+    message.clock !== undefined && (obj.clock = Math.round(message.clock))
     message.community !== undefined &&
       (obj.community = message.community
         ? CommunityDescription.toJSON(message.community)
@@ -1664,35 +1819,770 @@ export const CommunityRequestToJoinResponse = {
       (obj.grant = base64FromBytes(
         message.grant !== undefined ? message.grant : new Uint8Array()
       ))
+    message.communityId !== undefined &&
+      (obj.communityId = base64FromBytes(
+        message.communityId !== undefined
+          ? message.communityId
+          : new Uint8Array()
+      ))
+    message.magnetUri !== undefined && (obj.magnetUri = message.magnetUri)
     return obj
   },
 
-  fromPartial(
-    object: DeepPartial<CommunityRequestToJoinResponse>
+  fromPartial<I extends Exact<DeepPartial<CommunityRequestToJoinResponse>, I>>(
+    object: I
   ): CommunityRequestToJoinResponse {
-    const message = {
-      ...baseCommunityRequestToJoinResponse,
-    } as CommunityRequestToJoinResponse
-    if (object.clock !== undefined && object.clock !== null) {
-      message.clock = object.clock
-    } else {
-      message.clock = 0
+    const message = createBaseCommunityRequestToJoinResponse()
+    message.clock = object.clock ?? 0
+    message.community =
+      object.community !== undefined && object.community !== null
+        ? CommunityDescription.fromPartial(object.community)
+        : undefined
+    message.accepted = object.accepted ?? false
+    message.grant = object.grant ?? new Uint8Array()
+    message.communityId = object.communityId ?? new Uint8Array()
+    message.magnetUri = object.magnetUri ?? ''
+    return message
+  },
+}
+
+function createBaseCommunityRequestToLeave(): CommunityRequestToLeave {
+  return { clock: 0, communityId: new Uint8Array() }
+}
+
+export const CommunityRequestToLeave = {
+  encode(
+    message: CommunityRequestToLeave,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.clock !== 0) {
+      writer.uint32(8).uint64(message.clock)
     }
-    if (object.community !== undefined && object.community !== null) {
-      message.community = CommunityDescription.fromPartial(object.community)
-    } else {
-      message.community = undefined
+    if (message.communityId.length !== 0) {
+      writer.uint32(18).bytes(message.communityId)
     }
-    if (object.accepted !== undefined && object.accepted !== null) {
-      message.accepted = object.accepted
-    } else {
-      message.accepted = false
+    return writer
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): CommunityRequestToLeave {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseCommunityRequestToLeave()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.clock = longToNumber(reader.uint64() as Long)
+          break
+        case 2:
+          message.communityId = reader.bytes()
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
     }
-    if (object.grant !== undefined && object.grant !== null) {
-      message.grant = object.grant
-    } else {
-      message.grant = new Uint8Array()
+    return message
+  },
+
+  fromJSON(object: any): CommunityRequestToLeave {
+    return {
+      clock: isSet(object.clock) ? Number(object.clock) : 0,
+      communityId: isSet(object.communityId)
+        ? bytesFromBase64(object.communityId)
+        : new Uint8Array(),
     }
+  },
+
+  toJSON(message: CommunityRequestToLeave): unknown {
+    const obj: any = {}
+    message.clock !== undefined && (obj.clock = Math.round(message.clock))
+    message.communityId !== undefined &&
+      (obj.communityId = base64FromBytes(
+        message.communityId !== undefined
+          ? message.communityId
+          : new Uint8Array()
+      ))
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<CommunityRequestToLeave>, I>>(
+    object: I
+  ): CommunityRequestToLeave {
+    const message = createBaseCommunityRequestToLeave()
+    message.clock = object.clock ?? 0
+    message.communityId = object.communityId ?? new Uint8Array()
+    return message
+  },
+}
+
+function createBaseCommunityMessageArchiveMagnetlink(): CommunityMessageArchiveMagnetlink {
+  return { clock: 0, magnetUri: '' }
+}
+
+export const CommunityMessageArchiveMagnetlink = {
+  encode(
+    message: CommunityMessageArchiveMagnetlink,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.clock !== 0) {
+      writer.uint32(8).uint64(message.clock)
+    }
+    if (message.magnetUri !== '') {
+      writer.uint32(18).string(message.magnetUri)
+    }
+    return writer
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): CommunityMessageArchiveMagnetlink {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseCommunityMessageArchiveMagnetlink()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.clock = longToNumber(reader.uint64() as Long)
+          break
+        case 2:
+          message.magnetUri = reader.string()
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): CommunityMessageArchiveMagnetlink {
+    return {
+      clock: isSet(object.clock) ? Number(object.clock) : 0,
+      magnetUri: isSet(object.magnetUri) ? String(object.magnetUri) : '',
+    }
+  },
+
+  toJSON(message: CommunityMessageArchiveMagnetlink): unknown {
+    const obj: any = {}
+    message.clock !== undefined && (obj.clock = Math.round(message.clock))
+    message.magnetUri !== undefined && (obj.magnetUri = message.magnetUri)
+    return obj
+  },
+
+  fromPartial<
+    I extends Exact<DeepPartial<CommunityMessageArchiveMagnetlink>, I>
+  >(object: I): CommunityMessageArchiveMagnetlink {
+    const message = createBaseCommunityMessageArchiveMagnetlink()
+    message.clock = object.clock ?? 0
+    message.magnetUri = object.magnetUri ?? ''
+    return message
+  },
+}
+
+function createBaseWakuMessage(): WakuMessage {
+  return {
+    sig: new Uint8Array(),
+    timestamp: 0,
+    topic: new Uint8Array(),
+    payload: new Uint8Array(),
+    padding: new Uint8Array(),
+    hash: new Uint8Array(),
+    thirdPartyId: '',
+  }
+}
+
+export const WakuMessage = {
+  encode(
+    message: WakuMessage,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.sig.length !== 0) {
+      writer.uint32(10).bytes(message.sig)
+    }
+    if (message.timestamp !== 0) {
+      writer.uint32(16).uint64(message.timestamp)
+    }
+    if (message.topic.length !== 0) {
+      writer.uint32(26).bytes(message.topic)
+    }
+    if (message.payload.length !== 0) {
+      writer.uint32(34).bytes(message.payload)
+    }
+    if (message.padding.length !== 0) {
+      writer.uint32(42).bytes(message.padding)
+    }
+    if (message.hash.length !== 0) {
+      writer.uint32(50).bytes(message.hash)
+    }
+    if (message.thirdPartyId !== '') {
+      writer.uint32(58).string(message.thirdPartyId)
+    }
+    return writer
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): WakuMessage {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseWakuMessage()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.sig = reader.bytes()
+          break
+        case 2:
+          message.timestamp = longToNumber(reader.uint64() as Long)
+          break
+        case 3:
+          message.topic = reader.bytes()
+          break
+        case 4:
+          message.payload = reader.bytes()
+          break
+        case 5:
+          message.padding = reader.bytes()
+          break
+        case 6:
+          message.hash = reader.bytes()
+          break
+        case 7:
+          message.thirdPartyId = reader.string()
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): WakuMessage {
+    return {
+      sig: isSet(object.sig) ? bytesFromBase64(object.sig) : new Uint8Array(),
+      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : 0,
+      topic: isSet(object.topic)
+        ? bytesFromBase64(object.topic)
+        : new Uint8Array(),
+      payload: isSet(object.payload)
+        ? bytesFromBase64(object.payload)
+        : new Uint8Array(),
+      padding: isSet(object.padding)
+        ? bytesFromBase64(object.padding)
+        : new Uint8Array(),
+      hash: isSet(object.hash)
+        ? bytesFromBase64(object.hash)
+        : new Uint8Array(),
+      thirdPartyId: isSet(object.thirdPartyId)
+        ? String(object.thirdPartyId)
+        : '',
+    }
+  },
+
+  toJSON(message: WakuMessage): unknown {
+    const obj: any = {}
+    message.sig !== undefined &&
+      (obj.sig = base64FromBytes(
+        message.sig !== undefined ? message.sig : new Uint8Array()
+      ))
+    message.timestamp !== undefined &&
+      (obj.timestamp = Math.round(message.timestamp))
+    message.topic !== undefined &&
+      (obj.topic = base64FromBytes(
+        message.topic !== undefined ? message.topic : new Uint8Array()
+      ))
+    message.payload !== undefined &&
+      (obj.payload = base64FromBytes(
+        message.payload !== undefined ? message.payload : new Uint8Array()
+      ))
+    message.padding !== undefined &&
+      (obj.padding = base64FromBytes(
+        message.padding !== undefined ? message.padding : new Uint8Array()
+      ))
+    message.hash !== undefined &&
+      (obj.hash = base64FromBytes(
+        message.hash !== undefined ? message.hash : new Uint8Array()
+      ))
+    message.thirdPartyId !== undefined &&
+      (obj.thirdPartyId = message.thirdPartyId)
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<WakuMessage>, I>>(
+    object: I
+  ): WakuMessage {
+    const message = createBaseWakuMessage()
+    message.sig = object.sig ?? new Uint8Array()
+    message.timestamp = object.timestamp ?? 0
+    message.topic = object.topic ?? new Uint8Array()
+    message.payload = object.payload ?? new Uint8Array()
+    message.padding = object.padding ?? new Uint8Array()
+    message.hash = object.hash ?? new Uint8Array()
+    message.thirdPartyId = object.thirdPartyId ?? ''
+    return message
+  },
+}
+
+function createBaseWakuMessageArchiveMetadata(): WakuMessageArchiveMetadata {
+  return { version: 0, from: 0, to: 0, contentTopic: [] }
+}
+
+export const WakuMessageArchiveMetadata = {
+  encode(
+    message: WakuMessageArchiveMetadata,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.version !== 0) {
+      writer.uint32(8).uint32(message.version)
+    }
+    if (message.from !== 0) {
+      writer.uint32(16).uint64(message.from)
+    }
+    if (message.to !== 0) {
+      writer.uint32(24).uint64(message.to)
+    }
+    for (const v of message.contentTopic) {
+      writer.uint32(34).bytes(v!)
+    }
+    return writer
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): WakuMessageArchiveMetadata {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseWakuMessageArchiveMetadata()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.version = reader.uint32()
+          break
+        case 2:
+          message.from = longToNumber(reader.uint64() as Long)
+          break
+        case 3:
+          message.to = longToNumber(reader.uint64() as Long)
+          break
+        case 4:
+          message.contentTopic.push(reader.bytes())
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): WakuMessageArchiveMetadata {
+    return {
+      version: isSet(object.version) ? Number(object.version) : 0,
+      from: isSet(object.from) ? Number(object.from) : 0,
+      to: isSet(object.to) ? Number(object.to) : 0,
+      contentTopic: Array.isArray(object?.contentTopic)
+        ? object.contentTopic.map((e: any) => bytesFromBase64(e))
+        : [],
+    }
+  },
+
+  toJSON(message: WakuMessageArchiveMetadata): unknown {
+    const obj: any = {}
+    message.version !== undefined && (obj.version = Math.round(message.version))
+    message.from !== undefined && (obj.from = Math.round(message.from))
+    message.to !== undefined && (obj.to = Math.round(message.to))
+    if (message.contentTopic) {
+      obj.contentTopic = message.contentTopic.map(e =>
+        base64FromBytes(e !== undefined ? e : new Uint8Array())
+      )
+    } else {
+      obj.contentTopic = []
+    }
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<WakuMessageArchiveMetadata>, I>>(
+    object: I
+  ): WakuMessageArchiveMetadata {
+    const message = createBaseWakuMessageArchiveMetadata()
+    message.version = object.version ?? 0
+    message.from = object.from ?? 0
+    message.to = object.to ?? 0
+    message.contentTopic = object.contentTopic?.map(e => e) || []
+    return message
+  },
+}
+
+function createBaseWakuMessageArchive(): WakuMessageArchive {
+  return { version: 0, metadata: undefined, messages: [] }
+}
+
+export const WakuMessageArchive = {
+  encode(
+    message: WakuMessageArchive,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.version !== 0) {
+      writer.uint32(8).uint32(message.version)
+    }
+    if (message.metadata !== undefined) {
+      WakuMessageArchiveMetadata.encode(
+        message.metadata,
+        writer.uint32(18).fork()
+      ).ldelim()
+    }
+    for (const v of message.messages) {
+      WakuMessage.encode(v!, writer.uint32(26).fork()).ldelim()
+    }
+    return writer
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): WakuMessageArchive {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseWakuMessageArchive()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.version = reader.uint32()
+          break
+        case 2:
+          message.metadata = WakuMessageArchiveMetadata.decode(
+            reader,
+            reader.uint32()
+          )
+          break
+        case 3:
+          message.messages.push(WakuMessage.decode(reader, reader.uint32()))
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): WakuMessageArchive {
+    return {
+      version: isSet(object.version) ? Number(object.version) : 0,
+      metadata: isSet(object.metadata)
+        ? WakuMessageArchiveMetadata.fromJSON(object.metadata)
+        : undefined,
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => WakuMessage.fromJSON(e))
+        : [],
+    }
+  },
+
+  toJSON(message: WakuMessageArchive): unknown {
+    const obj: any = {}
+    message.version !== undefined && (obj.version = Math.round(message.version))
+    message.metadata !== undefined &&
+      (obj.metadata = message.metadata
+        ? WakuMessageArchiveMetadata.toJSON(message.metadata)
+        : undefined)
+    if (message.messages) {
+      obj.messages = message.messages.map(e =>
+        e ? WakuMessage.toJSON(e) : undefined
+      )
+    } else {
+      obj.messages = []
+    }
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<WakuMessageArchive>, I>>(
+    object: I
+  ): WakuMessageArchive {
+    const message = createBaseWakuMessageArchive()
+    message.version = object.version ?? 0
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? WakuMessageArchiveMetadata.fromPartial(object.metadata)
+        : undefined
+    message.messages =
+      object.messages?.map(e => WakuMessage.fromPartial(e)) || []
+    return message
+  },
+}
+
+function createBaseWakuMessageArchiveIndexMetadata(): WakuMessageArchiveIndexMetadata {
+  return { version: 0, metadata: undefined, offset: 0, size: 0, padding: 0 }
+}
+
+export const WakuMessageArchiveIndexMetadata = {
+  encode(
+    message: WakuMessageArchiveIndexMetadata,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.version !== 0) {
+      writer.uint32(8).uint32(message.version)
+    }
+    if (message.metadata !== undefined) {
+      WakuMessageArchiveMetadata.encode(
+        message.metadata,
+        writer.uint32(18).fork()
+      ).ldelim()
+    }
+    if (message.offset !== 0) {
+      writer.uint32(24).uint64(message.offset)
+    }
+    if (message.size !== 0) {
+      writer.uint32(32).uint64(message.size)
+    }
+    if (message.padding !== 0) {
+      writer.uint32(40).uint64(message.padding)
+    }
+    return writer
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): WakuMessageArchiveIndexMetadata {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseWakuMessageArchiveIndexMetadata()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.version = reader.uint32()
+          break
+        case 2:
+          message.metadata = WakuMessageArchiveMetadata.decode(
+            reader,
+            reader.uint32()
+          )
+          break
+        case 3:
+          message.offset = longToNumber(reader.uint64() as Long)
+          break
+        case 4:
+          message.size = longToNumber(reader.uint64() as Long)
+          break
+        case 5:
+          message.padding = longToNumber(reader.uint64() as Long)
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): WakuMessageArchiveIndexMetadata {
+    return {
+      version: isSet(object.version) ? Number(object.version) : 0,
+      metadata: isSet(object.metadata)
+        ? WakuMessageArchiveMetadata.fromJSON(object.metadata)
+        : undefined,
+      offset: isSet(object.offset) ? Number(object.offset) : 0,
+      size: isSet(object.size) ? Number(object.size) : 0,
+      padding: isSet(object.padding) ? Number(object.padding) : 0,
+    }
+  },
+
+  toJSON(message: WakuMessageArchiveIndexMetadata): unknown {
+    const obj: any = {}
+    message.version !== undefined && (obj.version = Math.round(message.version))
+    message.metadata !== undefined &&
+      (obj.metadata = message.metadata
+        ? WakuMessageArchiveMetadata.toJSON(message.metadata)
+        : undefined)
+    message.offset !== undefined && (obj.offset = Math.round(message.offset))
+    message.size !== undefined && (obj.size = Math.round(message.size))
+    message.padding !== undefined && (obj.padding = Math.round(message.padding))
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<WakuMessageArchiveIndexMetadata>, I>>(
+    object: I
+  ): WakuMessageArchiveIndexMetadata {
+    const message = createBaseWakuMessageArchiveIndexMetadata()
+    message.version = object.version ?? 0
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? WakuMessageArchiveMetadata.fromPartial(object.metadata)
+        : undefined
+    message.offset = object.offset ?? 0
+    message.size = object.size ?? 0
+    message.padding = object.padding ?? 0
+    return message
+  },
+}
+
+function createBaseWakuMessageArchiveIndex(): WakuMessageArchiveIndex {
+  return { archives: {} }
+}
+
+export const WakuMessageArchiveIndex = {
+  encode(
+    message: WakuMessageArchiveIndex,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    Object.entries(message.archives).forEach(([key, value]) => {
+      WakuMessageArchiveIndex_ArchivesEntry.encode(
+        { key: key as any, value },
+        writer.uint32(10).fork()
+      ).ldelim()
+    })
+    return writer
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): WakuMessageArchiveIndex {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseWakuMessageArchiveIndex()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          const entry1 = WakuMessageArchiveIndex_ArchivesEntry.decode(
+            reader,
+            reader.uint32()
+          )
+          if (entry1.value !== undefined) {
+            message.archives[entry1.key] = entry1.value
+          }
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): WakuMessageArchiveIndex {
+    return {
+      archives: isObject(object.archives)
+        ? Object.entries(object.archives).reduce<{
+            [key: string]: WakuMessageArchiveIndexMetadata
+          }>((acc, [key, value]) => {
+            acc[key] = WakuMessageArchiveIndexMetadata.fromJSON(value)
+            return acc
+          }, {})
+        : {},
+    }
+  },
+
+  toJSON(message: WakuMessageArchiveIndex): unknown {
+    const obj: any = {}
+    obj.archives = {}
+    if (message.archives) {
+      Object.entries(message.archives).forEach(([k, v]) => {
+        obj.archives[k] = WakuMessageArchiveIndexMetadata.toJSON(v)
+      })
+    }
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<WakuMessageArchiveIndex>, I>>(
+    object: I
+  ): WakuMessageArchiveIndex {
+    const message = createBaseWakuMessageArchiveIndex()
+    message.archives = Object.entries(object.archives ?? {}).reduce<{
+      [key: string]: WakuMessageArchiveIndexMetadata
+    }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = WakuMessageArchiveIndexMetadata.fromPartial(value)
+      }
+      return acc
+    }, {})
+    return message
+  },
+}
+
+function createBaseWakuMessageArchiveIndex_ArchivesEntry(): WakuMessageArchiveIndex_ArchivesEntry {
+  return { key: '', value: undefined }
+}
+
+export const WakuMessageArchiveIndex_ArchivesEntry = {
+  encode(
+    message: WakuMessageArchiveIndex_ArchivesEntry,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.key !== '') {
+      writer.uint32(10).string(message.key)
+    }
+    if (message.value !== undefined) {
+      WakuMessageArchiveIndexMetadata.encode(
+        message.value,
+        writer.uint32(18).fork()
+      ).ldelim()
+    }
+    return writer
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): WakuMessageArchiveIndex_ArchivesEntry {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseWakuMessageArchiveIndex_ArchivesEntry()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.key = reader.string()
+          break
+        case 2:
+          message.value = WakuMessageArchiveIndexMetadata.decode(
+            reader,
+            reader.uint32()
+          )
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): WakuMessageArchiveIndex_ArchivesEntry {
+    return {
+      key: isSet(object.key) ? String(object.key) : '',
+      value: isSet(object.value)
+        ? WakuMessageArchiveIndexMetadata.fromJSON(object.value)
+        : undefined,
+    }
+  },
+
+  toJSON(message: WakuMessageArchiveIndex_ArchivesEntry): unknown {
+    const obj: any = {}
+    message.key !== undefined && (obj.key = message.key)
+    message.value !== undefined &&
+      (obj.value = message.value
+        ? WakuMessageArchiveIndexMetadata.toJSON(message.value)
+        : undefined)
+    return obj
+  },
+
+  fromPartial<
+    I extends Exact<DeepPartial<WakuMessageArchiveIndex_ArchivesEntry>, I>
+  >(object: I): WakuMessageArchiveIndex_ArchivesEntry {
+    const message = createBaseWakuMessageArchiveIndex_ArchivesEntry()
+    message.key = object.key ?? ''
+    message.value =
+      object.value !== undefined && object.value !== null
+        ? WakuMessageArchiveIndexMetadata.fromPartial(object.value)
+        : undefined
     return message
   },
 }
@@ -1725,9 +2615,9 @@ const btoa: (bin: string) => string =
   (bin => globalThis.Buffer.from(bin, 'binary').toString('base64'))
 function base64FromBytes(arr: Uint8Array): string {
   const bin: string[] = []
-  for (const byte of arr) {
+  arr.forEach(byte => {
     bin.push(String.fromCharCode(byte))
-  }
+  })
   return btoa(bin.join(''))
 }
 
@@ -1739,6 +2629,7 @@ type Builtin =
   | number
   | boolean
   | undefined
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -1748,6 +2639,14 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>
+
+type KeysOfUnion<T> = T extends T ? keyof T : never
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {
@@ -1759,4 +2658,12 @@ function longToNumber(long: Long): number {
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any
   _m0.configure()
+}
+
+function isObject(value: any): boolean {
+  return typeof value === 'object' && value !== null
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined
 }
