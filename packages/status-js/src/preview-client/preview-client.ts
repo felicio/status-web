@@ -7,10 +7,13 @@ import { waitForRemotePeer } from 'js-waku/lib/wait_for_remote_peer'
 import { SymDecoder } from 'js-waku/lib/waku_message/version_1'
 
 import { peers } from '../consts/peers'
-import { CommunityDescription } from '../proto/communities/v1/communities'
-import { ContactCodeAdvertisement } from '../proto/communities/v1/push_notifications'
-import { ApplicationMetadataMessage } from '../protos/application-metadata-message'
-import { ProtocolMessage } from '../protos/protocol-message'
+import {
+  ApplicationMetadataMessage,
+  ApplicationMetadataMessage_Type,
+} from '../protos/application-metadata-message_pb'
+import { CommunityDescription } from '../protos/communities_pb'
+import { ProtocolMessage } from '../protos/protocol-message_pb'
+import { ContactCodeAdvertisement } from '../protos/push-notifications_pb'
 import { compressPublicKey } from '../utils/compress-public-key'
 import { generateKeyFromPassword } from '../utils/generate-key-from-password'
 import { idToContentTopic } from '../utils/id-to-content-topic'
@@ -162,14 +165,13 @@ class PreviewClient {
         }
 
         if (
-          message.type !==
-          ApplicationMetadataMessage.Type.TYPE_COMMUNITY_DESCRIPTION
+          message.type !== ApplicationMetadataMessage_Type.COMMUNITY_DESCRIPTION
         ) {
           return
         }
 
         // decode
-        const decodedCommunityDescription = CommunityDescription.decode(
+        const decodedCommunityDescription = CommunityDescription.fromBinary(
           message.payload
         )
 
@@ -221,13 +223,13 @@ class PreviewClient {
 
         if (
           message.type !==
-          ApplicationMetadataMessage.Type.TYPE_CONTACT_CODE_ADVERTISEMENT
+          ApplicationMetadataMessage_Type.CONTACT_CODE_ADVERTISEMENT
         ) {
           return
         }
 
         // decode
-        const decodedContactCode = ContactCodeAdvertisement.decode(
+        const decodedContactCode = ContactCodeAdvertisement.fromBinary(
           message.payload
         )
 
@@ -269,7 +271,7 @@ class PreviewClient {
     | {
         timestamp: Date
         signerPublicKey: string
-        type: ApplicationMetadataMessage.Type
+        type: ApplicationMetadataMessage_Type
         payload: Uint8Array
       }
     | undefined => {
@@ -290,7 +292,7 @@ class PreviewClient {
     let messageToDecode = wakuMessage.payload
     let decodedProtocol
     try {
-      decodedProtocol = ProtocolMessage.decode(messageToDecode)
+      decodedProtocol = ProtocolMessage.fromBinary(messageToDecode)
       if (decodedProtocol) {
         messageToDecode = decodedProtocol.publicMessage
       }
@@ -298,7 +300,8 @@ class PreviewClient {
       // eslint-disable-next-line no-empty
     }
 
-    const decodedMetadata = ApplicationMetadataMessage.decode(messageToDecode)
+    const decodedMetadata =
+      ApplicationMetadataMessage.fromBinary(messageToDecode)
     if (!decodedMetadata.payload) {
       return
     }

@@ -27,9 +27,9 @@
     "typegen": "tsc --noEmit false --emitDeclarationOnly || true",
     "lint": "eslint src",
     "format": "prettier --write src",
-    "proto:lint": "buf lint",
-    "proto": "buf generate",
-    "protos": "protons src/protos/*.proto",
+    "protos:list": "buf ls-files src/protos",
+    "protos:lint": "buf lint src/protos",
+    "protos": "buf generate src/protos",
     "clean": "rm -rf dist node_modules .turbo"
   },
   "dependencies": {
@@ -39,8 +39,7 @@
     "long": "^5.2.0"
   },
   "devDependencies": {
-    "protons": "^3.0.4",
-    "ts-proto": "^1.115.1"
+    "@bufbuild/protoc-gen-es": "^1.0.0"
   },
   "files": [
     "dist/",

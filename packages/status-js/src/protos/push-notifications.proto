@@ -1,8 +1,6 @@
 syntax = "proto3";
 
-package communities.v1;
-
-import "communities/v1/chat_identity.proto";
+import "chat-identity.proto";
 
 message PushNotificationRegistration {
   enum TokenType {
