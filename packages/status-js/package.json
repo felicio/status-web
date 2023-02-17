@@ -36,7 +36,10 @@
     "@bufbuild/protobuf": "^1.0.0",
     "ethereum-cryptography": "^1.0.3",
     "js-waku": "^0.30.0",
-    "long": "^5.2.0"
+    "long": "^5.2.0",
+    "multiformats": "^11.0.1",
+    "protobufjs": "^6.11.3",
+    "protons-runtime": "^1.0.4"
   },
   "devDependencies": {
     "@bufbuild/protoc-gen-es": "^1.0.0"
