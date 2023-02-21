@@ -1,0 +1,57 @@
+{
+  "name": "@status-im/components",
+  "version": "0.0.1",
+  "sideEffects": [
+    "*.css"
+  ],
+  "private": true,
+  "types": "src/index.tsx",
+  "main": "src/index.tsx",
+  "files": [
+    "types",
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tamagui-build --watch",
+    "build": "tamagui-build",
+    "typegen": "tsc --noEmit false --emitDeclarationOnly || true",
+    "storybook": "TAMAGUI_TARGET='web' storybook dev -p 3001",
+    "storybook:build": "TAMAGUI_TARGET='web' storybook build"
+  },
+  "peerDependencies": {
+    "react-native-web": "^0.18.0"
+  },
+  "dependencies": {
+    "@radix-ui/react-dropdown-menu": "^2.0.2",
+    "@radix-ui/react-popover": "^1.0.3",
+    "@radix-ui/react-tooltip": "^1.0.3",
+    "@status-im/icons": "*",
+    "@tamagui/animations-css": "1.0.15",
+    "@tamagui/animations-react-native": "1.0.15",
+    "@tamagui/core": "1.0.15",
+    "@tamagui/font-inter": "1.0.15",
+    "@tamagui/react-native-media-driver": "1.0.15",
+    "@tamagui/shorthands": "1.0.15",
+    "@tamagui/theme-base": "1.0.15",
+    "tamagui": "1.0.15"
+  },
+  "devDependencies": {
+    "@storybook/addon-essentials": "7.0.0-beta.21",
+    "@storybook/addon-interactions": "7.0.0-beta.21",
+    "@storybook/addon-links": "7.0.0-beta.21",
+    "@storybook/blocks": "7.0.0-beta.21",
+    "@storybook/react": "7.0.0-beta.21",
+    "@storybook/react-vite": "7.0.0-beta.21",
+    "@storybook/testing-library": "^0.0.13",
+    "@tamagui/build": "1.0.15",
+    "@tamagui/vite-plugin": "1.0.15",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-native-svg": "^13.7.0",
+    "react-native-web": "^0.18.0",
+    "storybook": "7.0.0-beta.21",
+    "storybook-addon-designs": "7.0.0-beta.2",
+    "storybook-dark-mode": "^2.0.5",
+    "vite": "^4.0.4"
+  }
+}
