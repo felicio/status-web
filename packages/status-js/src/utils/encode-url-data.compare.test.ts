@@ -403,6 +403,60 @@ describe('chat', () => {
     expect(encodedData).toHaveLength(284) // but has same length
   })
 
+  test('H', () => {
+    const data = {
+      emoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+      displayName: '有些出于偶然',
+      description:
+        '无可否认，当读者在浏览一个页面的排版时，难免会被可阅读的内容所分散注意力。有些则是故',
+      color: '#EAB700',
+      community: {
+        displayName: '它使用由超过200个拉丁',
+        description:
+          '然而这个生成器则是互联网上首个确切的生成器。它使用由超过200个拉丁单词所构造的词典',
+        membersCount: 1_000_000,
+        color: '#4360DF',
+      },
+    }
+    const encodedData = encodeUrlData('chat', data, {
+      serialization: 'protobuf',
+      compression: 'brotli',
+      encoding: 'base64url',
+    })
+
+    expect(encodedData).toBe(
+      'G2QBQJwFdqwxrBnNb57kP0irrJpuouIjS1WZqHS6A2txojsUHidyu3evaAO3GQQku5NCQXiwAYchBIMNyptts-MD9bZAwoTasraIMkjbS1uAD7oxsAQ53OAmQWCefyBuuXlAu6J7eKQRQhgg5tan75fFp9jwGIjBLbGhnyUht2qj5GWlSBp7_OXsHxgnr21xA2HgR9VGYYikQJA4tcQHDrQzg_ARC9KiOVDD6vgTCM9_CN0HJ1zxwP3w6nzgkDTNuvDCFD3Clqo6Cf_UNY2cNRlKTqj86G4gC2dUNSApwiq72BdGTtrleiRFPUhCbTRbmEG4YwFOs4EjBdJHHRiqjS5GYGc1dAdgcGr2BQ=='
+    )
+    expect(encodedData).toHaveLength(360)
+  })
+
+  test('I', () => {
+    const data = {
+      emoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+      displayName: 'обеспечивает',
+      description:
+        'Давно выяснено, что при оценке дизайна и композиции читаемый текст мешает',
+      color: '#EAB700',
+      community: {
+        displayName: 'скрытой в середи',
+        description:
+          'Многие думают, что Lorem Ipsum - взятый с потолка псевдо-латинский набор слов, но это не совсем так. Его корни уходят в один фрагмент классической латыни 45 года н.э.,',
+        membersCount: 1_000_000,
+        color: '#4360DF',
+      },
+    }
+    const encodedData = encodeUrlData('chat', data, {
+      serialization: 'protobuf',
+      compression: 'brotli',
+      encoding: 'base64url',
+    })
+
+    expect(encodedData).toBe(
+      'GxwC4D0Ubywi9SATczdEJ2bC9dWrQIKfXPR8jLEGQiSJ_SGaJ6JY7ZTujUTnQrt9qZ1ouaETCKUQfnO7Q9js2xzp0wQot4Ehp_9TnTB0oVq6CVJWl0Iob3VQ0zA2OkQrCC7b5OZsefwWKLzmCUUceGZZd9nuRgOf6gbOMeHZFHxcufBkaVnOE5xkQQowVp8XfECxjCqrzMjSlkd4foK0kDWOSW6wGIZGi-0VN7WIpqAAtEuLE5o2tgFjZ_3PVd__3_kpvOBdv-aenxPHNZfsd1vdzDqVIdaoyZjQpO1r0Y_FIByzbkM31hg-Xdx_9ke5q0gVPPWEX_FoGG9GZcq-D0GcNVnD4C9pskfUHpbphAwja_AfAfu-hoyWxDT1pphVjEKh9UYCw0aO0R7ImQoMgdBSOs1ZdjI-cHWw169xxXF2mt8A'
+    )
+    expect(encodedData).toHaveLength(432)
+  })
+
   describe('max', () => {
     test('A', () => {
       const data = {
@@ -421,7 +475,7 @@ describe('chat', () => {
       }
       const encodedData = encodeUrlData('chat', data, {
         serialization: 'protobuf',
-        compression: 'brotli',
+        compression: 'noop',
         encoding: 'base64url',
       })
 
