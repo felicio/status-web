@@ -12,6 +12,7 @@ export type { Community } from './client/community/community'
 export type { Reaction, Reactions } from './client/community/get-reactions'
 export type { Member } from './client/member'
 export { createPreviewClient } from './preview-client/preview-client'
+export { deserializePublicKey } from './utils/deserialize-public-key'
 export {
   decodeChannelUrlData,
   decodeCommunityUrlData,
