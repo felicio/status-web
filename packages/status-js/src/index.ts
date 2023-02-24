@@ -18,3 +18,4 @@ export {
   decodeCommunityUrlData,
   decodeUserUrlData,
 } from './utils/encode-url-data'
+export { publicKeyToEmojiHash } from './utils/public-key-to-emoji-hash'
