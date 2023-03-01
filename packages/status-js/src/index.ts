@@ -19,3 +19,4 @@ export {
   decodeUserUrlData,
 } from './utils/encode-url-data'
 export { publicKeyToEmojiHash } from './utils/public-key-to-emoji-hash'
+export { verifyEncodedUrlData } from './utils/sign-url-data'
