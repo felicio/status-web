@@ -13,6 +13,7 @@ const external = [
 
 export default defineConfig(({ mode }) => {
   return {
+    root: '.',
     build: {
       target: 'es2020',
       lib: {
