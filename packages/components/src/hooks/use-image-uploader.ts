@@ -66,7 +66,7 @@ const useImageUpload = (): UseImageUploadReturn => {
     handleImageUpload,
     handleImageRemove,
     imageUploaderInputRef,
-    isDisabled: imagesData.length >= IMAGES_LIMIT,
+    isDisabled: imagesData.length >= IMAGES_LIMIT
   }
 }
 

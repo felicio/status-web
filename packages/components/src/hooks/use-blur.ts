@@ -15,12 +15,8 @@ type UseBlurProps = {
 }
 
 const useBlur = (props: UseBlurProps): UseBlurReturn => {
-  const {
-    marginBlurBottom = 32,
-    heightTop = 56,
-    throttle = 100,
-    ref,
-  } = props || {}
+  const { marginBlurBottom = 32, heightTop = 56, throttle = 100, ref } =
+    props || {}
 
   const [shouldBlurTop, setShouldBlurTop] = useState(false)
   const [shouldBlurBottom, setShouldBlurBottom] = useState(false)

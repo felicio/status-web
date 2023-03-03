@@ -1,18 +1,18 @@
 import { useState } from 'react'
 
-import { useImageUpload } from '@status-im/components/hooks'
 import {
   ArrowUpIcon,
   AudioIcon,
   ClearIcon,
   FormatIcon,
   ImageIcon,
-  ReactionIcon,
+  ReactionIcon
 } from '@status-im/icons/20'
 import { BlurView } from 'expo-blur'
 import { AnimatePresence, Stack, XStack, YStack } from 'tamagui'
 
 import { Button } from '../button'
+import { useImageUpload } from '../hooks'
 import { IconButton } from '../icon-button'
 import { Image } from '../image'
 import { Input } from '../input'
@@ -34,7 +34,7 @@ const Composer = (props: Props) => {
     handleImageUpload,
     handleImageRemove,
     imageUploaderInputRef,
-    isDisabled: isImageUploadDisabled,
+    isDisabled: isImageUploadDisabled
   } = useImageUpload()
 
   const iconButtonBlurred = isBlurred && !isFocused && imagesData.length === 0
@@ -44,7 +44,7 @@ const Composer = (props: Props) => {
       intensity={40}
       style={{
         borderRadius: 20,
-        width: '100%',
+        width: '100%'
       }}
     >
       <YStack
@@ -59,7 +59,7 @@ const Composer = (props: Props) => {
         width="100%"
         py={12}
         style={{
-          elevation: 10,
+          elevation: 10
         }}
       >
         {reply && (
@@ -93,7 +93,7 @@ const Composer = (props: Props) => {
           hidden
           id="image-uploader-input"
           style={{
-            display: 'none',
+            display: 'none'
           }}
         />
         <AnimatePresence>
@@ -116,9 +116,9 @@ const Composer = (props: Props) => {
                     'fast',
                     {
                       opacity: {
-                        overshootClamping: true,
-                      },
-                    },
+                        overshootClamping: true
+                      }
+                    }
                   ]}
                   enterStyle={{ opacity: 0 }}
                   exitStyle={{ opacity: 0 }}
