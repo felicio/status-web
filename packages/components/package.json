@@ -32,8 +32,10 @@
   },
   "peerDependencies": {
     "@tamagui/core": "1.0.15",
-    "@tamagui/next-plugin": "1.0.15",
-    "react-native-web": "^0.18.0"
+    "react-native-web": "^0.18.0",
+    "react": "^16.x || ^17.x || ^18.x",
+    "react-dom": "*",
+    "react-native-svg": ">=12"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.2",
