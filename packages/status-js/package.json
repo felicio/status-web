@@ -21,7 +21,7 @@
   "scripts": {
     "dev": "vite build --watch --mode development",
     "build": "vite build",
-    "postbuild": "yarn typegen",
+    "postbuild": "pnpm typegen",
     "test": "vitest",
     "typecheck": "tsc",
     "typegen": "tsc --noEmit false --emitDeclarationOnly || true",

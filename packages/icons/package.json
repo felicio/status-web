@@ -26,16 +26,16 @@
   },
   "scripts": {
     "dev": "vite build --watch --mode development",
-    "generate": "rimraf 12 16 20 reactions && svgr src && yarn fix",
+    "generate": "rimraf 12 16 20 reactions && svgr src && pnpm fix",
     "build": "vite build",
-    "#postbuild": "yarn typegen",
+    "#postbuild": "pnpm typegen",
     "#test": "vitest",
     "typecheck": "tsc",
     "typegen": "tsc --noEmit false --emitDeclarationOnly || true",
     "lint": "eslint '{12,16,20,reactions}/**/*.{ts,tsx}'",
     "lint:fix": "eslint '{12,16,20,reactions}/**/*.{ts,tsx}' --fix",
     "format": "prettier --write '{12,16,20,reactions}/**/*.{ts,tsx}'",
-    "fix": "yarn lint:fix && yarn format",
+    "fix": "pnpm lint:fix && pnpm format",
     "clean": "rimraf dist node_modules .turbo"
   },
   "peerDependencies": {

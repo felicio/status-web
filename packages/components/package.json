@@ -24,7 +24,7 @@
   "scripts": {
     "dev": "tamagui-build --watch",
     "build": "tamagui-build || true",
-    "postbuild": "yarn typegen",
+    "postbuild": "pnpm typegen",
     "typegen": "tsc --noEmit false --emitDeclarationOnly || true",
     "storybook": "TAMAGUI_TARGET='web' storybook dev -p 3001",
     "storybook:build": "TAMAGUI_TARGET='web' storybook build",
