@@ -1,5 +1,10 @@
 lockfileVersion: 5.4
 
+patchedDependencies:
+  '@achingbrain/ssdp@4.0.1':
+    hash: geyejg3verpycq5ishawi5xwi4
+    path: patches/@achingbrain__ssdp@4.0.1.patch
+
 importers:
 
   .:
@@ -413,7 +418,7 @@ packages:
     resolution: {integrity: sha512-P8Z8iMZBQCsN7q3XoVoJAX3CGPUTbGTh1XBU8JytCW3hBmSk594l8YvdrtY5NVexVHSwLeiXnDsP4d10NJHaeg==}
     engines: {node: '>=16.0.0', npm: '>=7.0.0'}
     dependencies:
-      '@achingbrain/ssdp': 4.0.1
+      '@achingbrain/ssdp': 4.0.1_geyejg3verpycq5ishawi5xwi4
       '@libp2p/logger': 2.0.1
       default-gateway: 6.0.3
       err-code: 3.0.1
@@ -425,7 +430,7 @@ packages:
       - supports-color
     dev: false
 
-  /@achingbrain/ssdp/4.0.1:
+  /@achingbrain/ssdp/4.0.1_geyejg3verpycq5ishawi5xwi4:
     resolution: {integrity: sha512-z/CkfFI0Ksrpo8E+lu2rKahlE1KJHUn8X8ihQj2Jg6CEL+oHYGCNfttOES0+VnV7htuog70c8bYNHYhlmmqxBQ==}
     engines: {node: '>=16.0.0', npm: '>=7.0.0'}
     dependencies:
@@ -435,6 +440,7 @@ packages:
       uuid: 8.3.2
       xml2js: 0.4.23
     dev: false
+    patched: true
 
   /@ampproject/remapping/2.2.0:
     resolution: {integrity: sha512-qRmjj8nj9qmLTQXXmaR1cck3UXSRMPrbsLJAasZpF+t3riI71BXed5ebIOYwQntykeZuhjsdweEc9BxH5Jc26w==}

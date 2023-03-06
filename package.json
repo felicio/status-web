@@ -54,5 +54,10 @@
       "prettier --write"
     ]
   },
-  "packageManager": "pnpm@7.29.0"
+  "packageManager": "pnpm@7.29.0",
+  "pnpm": {
+    "patchedDependencies": {
+      "@achingbrain/ssdp@4.0.1": "patches/@achingbrain__ssdp@4.0.1.patch"
+    }
+  }
 }
