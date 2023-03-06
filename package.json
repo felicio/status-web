@@ -10,7 +10,6 @@
   },
   "keywords": [],
   "scripts": {
-    "postinstall": "patch-package",
     "prepare": "husky install",
     "test": "turbo run test --filter=@status-im/* -- --run",
     "dev": "turbo run dev --parallel --filter=@status-im/*",
@@ -55,8 +54,5 @@
       "prettier --write"
     ]
   },
-  "packageManager": "pnpm@7.29.0",
-  "dependencies": {
-    "patch-package": "^6.5.1"
-  }
+  "packageManager": "pnpm@7.29.0"
 }
