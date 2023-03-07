@@ -29,7 +29,9 @@ export default defineConfig(({ mode }) => {
       target: 'es2020',
       lib: {
         entry: './src/index.ts',
-        fileName: 'index',
+        fileName(format, entryName) {
+          return `${entryName}.${format}.js`
+        },
         formats: ['es'],
       },
       sourcemap: true,
