@@ -6104,6 +6104,11 @@
   resolved "https://registry.yarnpkg.com/@tamagui/colors/-/colors-1.0.15.tgz#59eea6bc57ed2145c42c351fd5a99d738182bc25"
   integrity sha512-nKe0YVqxLEQdPgjpn4kr/AR1ZLqmhi79W45WbiuzBeSvaDVis8IC501aEHM/2h4O5gT4vC54KFPfNVKfaDjG1w==
 
+"@tamagui/compose-refs@1.7.1":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@tamagui/compose-refs/-/compose-refs-1.7.1.tgz#6a7fa89a6acfbde9c6c39d63e99c1754c04da7fd"
+  integrity sha512-T2yxX3T5cjVkyBJk6Kg9FbiXsnaS+BCYn6kG/SMgQcSJ2NeDMFAsU8lfDYF29CHQRCCSrGfVVjvei+JTUSNW7A==
+
 "@tamagui/compose-refs@^1.0.15":
   version "1.0.15"
   resolved "https://registry.yarnpkg.com/@tamagui/compose-refs/-/compose-refs-1.0.15.tgz#e7507f40d0e3663d48be72ad25288e5557e41067"
@@ -6116,6 +6121,11 @@
   dependencies:
     "@tamagui/core-node" "^1.0.15"
     "@tamagui/shorthands" "^1.0.15"
+
+"@tamagui/constants@1.7.1":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@tamagui/constants/-/constants-1.7.1.tgz#49969617dce6f93e6bdc4a5f4270f2ac2592538b"
+  integrity sha512-dUsvC2+ciNAJyy+E9MUXmL2pWo1ZBi1WSwzByDe6qZWW/4vpvsDIK6g9YCngUwkjftvMHd5gd4hRZUpAsRU9hQ==
 
 "@tamagui/constants@^1.0.15":
   version "1.0.15"
@@ -6211,6 +6221,14 @@
     "@tamagui/compose-refs" "^1.0.15"
     "@tamagui/core" "^1.0.15"
 
+"@tamagui/focusable@^1.6.3":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@tamagui/focusable/-/focusable-1.7.1.tgz#14aef1d35ca45c99fd1a491c569177ab612a883f"
+  integrity sha512-055on9MMsC8JDHl6mAgRbJ5gjJsU/QyGR2G6d9dHBIRXccm/txPSk30CVtHNZn0/9PAu2fVufKS+qwRg6SFsuw==
+  dependencies:
+    "@tamagui/compose-refs" "1.7.1"
+    "@tamagui/web" "1.7.1"
+
 "@tamagui/font-inter@1.0.15":
   version "1.0.15"
   resolved "https://registry.yarnpkg.com/@tamagui/font-inter/-/font-inter-1.0.15.tgz#cf9334982cb11d664a5fe06a75ac52c76f4ea242"
@@ -6258,6 +6276,13 @@
   dependencies:
     "@tamagui/core" "^1.0.15"
     "@tamagui/helpers" "^1.0.15"
+
+"@tamagui/helpers@1.7.1":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@tamagui/helpers/-/helpers-1.7.1.tgz#1391529f4faee2bdb2c318697ba626c1a2db4c44"
+  integrity sha512-NCq/Fwdm6PuWDJBXrH+6CQ2DJ0jAR8FN1EN4C6qSvVT4WwTbf6oM5+SjTZugSeFiTZBr80CdM6kLLLKDVxC5WQ==
+  dependencies:
+    "@tamagui/simple-hash" "1.7.1"
 
 "@tamagui/helpers@^1.0.15":
   version "1.0.15"
@@ -6330,6 +6355,11 @@
   integrity sha512-yXIjyVZYZL53MMKPML+A3mdadyB4sZYujr/y6GDMzBjfIdYDs5XeyHKIjwqNunrxSQtqQo6ixNRUIYKxAhsvrw==
   dependencies:
     "@tamagui/use-event" "^1.0.15"
+
+"@tamagui/normalize-css-color@1.7.1":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@tamagui/normalize-css-color/-/normalize-css-color-1.7.1.tgz#3433ebdc26f63b541882e1a98f059219d05fca0d"
+  integrity sha512-3LtH2ZcUVuiP+etWRL7lx+AMlPBt0SBGy903AhK8VsFED0sdDGjagqm+GqttoCJYGS9evetZxm9zCvfgE7az0g==
 
 "@tamagui/normalize-css-color@^1.0.15":
   version "1.0.15"
@@ -6501,6 +6531,11 @@
   resolved "https://registry.yarnpkg.com/@tamagui/shorthands/-/shorthands-1.0.15.tgz#f8e5cbe156bc640bbbbb77e46a3d12e6bf2ccc05"
   integrity sha512-kjsDgX6UrwxJUzMoLNAmwyJmp0I/9aonbRSjoKYrcrAQ3B6DbY/Bcj0vFz7MQKWFYVsAY9tN1E9r7gc+U4iO1A==
 
+"@tamagui/simple-hash@1.7.1":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@tamagui/simple-hash/-/simple-hash-1.7.1.tgz#f5c3aaf7549a3d92127daac89517be6ffc67b55b"
+  integrity sha512-j0W0wwCiRLEeEj2QZWmHal5Zo/Y68AhhSPcf43lbHkKjpVWmwQNQQqVEFZJo2Xdyzz2o/suFoeVYSwMm+90d1g==
+
 "@tamagui/simple-hash@^1.0.15":
   version "1.0.15"
   resolved "https://registry.yarnpkg.com/@tamagui/simple-hash/-/simple-hash-1.0.15.tgz#487c7d5e2b012b678d7cfda3b36ae1efb37c27ef"
@@ -6626,6 +6661,13 @@
   resolved "https://registry.yarnpkg.com/@tamagui/use-debounce/-/use-debounce-1.0.15.tgz#e3e34937c436352e46a98008d6fe14041739d99a"
   integrity sha512-IVzcKSKe6cWaNEcVPP/tbYfSiJfjmix12UZuCbxNZVsxc6w1cDtJCYoQXyeToNl6y0n375dal34c/IGL+jFO7g==
 
+"@tamagui/use-did-finish-ssr@1.7.1":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@tamagui/use-did-finish-ssr/-/use-did-finish-ssr-1.7.1.tgz#8134dbcfe4fc691d043be53df17e2d3c7937e0bb"
+  integrity sha512-mCXrxwxLNybH3rh0fjHgV9c14rlnB6peTfCPQMjBGonDxn/wr/V4Z0gxvptZr9VQBNRdvbDhrgvwRWp67iXUGQ==
+  dependencies:
+    "@tamagui/constants" "1.7.1"
+
 "@tamagui/use-did-finish-ssr@^1.0.15":
   version "1.0.15"
   resolved "https://registry.yarnpkg.com/@tamagui/use-did-finish-ssr/-/use-did-finish-ssr-1.0.15.tgz#f575453ff3230804ed14dc735b953d0b27be0814"
@@ -6636,10 +6678,20 @@
   resolved "https://registry.yarnpkg.com/@tamagui/use-direction/-/use-direction-1.0.15.tgz#e597ed7ed3be9ebfe3f9d599c22cfcfcb1693b17"
   integrity sha512-E+AP3/uXepxktljB9pRIxlQelhLmscLzx1pzl4g6V5z90vvDR9DpE5euHGBQ6r56nrfoV7cxCQzX4peSXn8OvA==
 
+"@tamagui/use-event@1.7.1":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@tamagui/use-event/-/use-event-1.7.1.tgz#6872e71629b9ac66f4a0555aa19d11395515f3e9"
+  integrity sha512-l0k3RVsSIp0/mrwLtD663LEn1xzsvCJ0YaqUS/5lIalufgfP3FDXZ/i2FZ1+Hu+BGOY51tUSYnjoIGlIZY3QDA==
+
 "@tamagui/use-event@^1.0.15":
   version "1.0.15"
   resolved "https://registry.yarnpkg.com/@tamagui/use-event/-/use-event-1.0.15.tgz#ce79dde0fee54a4bceba10346b9f51a400b090c0"
   integrity sha512-uHkXQa3Aq41lbNhWsWwxH2fZewheHTrz8KozE3mBIiJiXnQ3wWkRb7m/ZUeUGhxtgSkyEDm7PqoDBHZIKPrcog==
+
+"@tamagui/use-force-update@1.7.1":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@tamagui/use-force-update/-/use-force-update-1.7.1.tgz#1f6fe2319f964aa1bb6df6214bef50c06ca0511c"
+  integrity sha512-5dnuj8ySACPkVOzyvmPb+ir1APZkPkZpt6Yc6xcOLwg8wAbZm6tk6l8274Q2NhDmnh8ZCC5dvndkrg8ndT2HHg==
 
 "@tamagui/use-force-update@^1.0.15":
   version "1.0.15"
@@ -6680,6 +6732,19 @@
     fs-extra "^10.1.0"
     lodash "^4.17.21"
     outdent "^0.8.0"
+
+"@tamagui/web@1.7.1":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@tamagui/web/-/web-1.7.1.tgz#17f6a3347b610de8efd0c0332adea1e48d6cb003"
+  integrity sha512-luxRanBFEyY9jORpQqMOu9wAHj/9sS+Me68QhHEousEZlaL5I/z8357UOnPRk47CiYtkrOjh3Mz2P9nRdpPrOw==
+  dependencies:
+    "@tamagui/compose-refs" "1.7.1"
+    "@tamagui/constants" "1.7.1"
+    "@tamagui/helpers" "1.7.1"
+    "@tamagui/normalize-css-color" "1.7.1"
+    "@tamagui/use-did-finish-ssr" "1.7.1"
+    "@tamagui/use-event" "1.7.1"
+    "@tamagui/use-force-update" "1.7.1"
 
 "@tauri-apps/api@^1.2.0":
   version "1.2.0"
@@ -7445,11 +7510,6 @@
   integrity sha512-kYzDJO5CA9sy+on/s2aIW0411AklfCi8Ck/4QDivOqsMKpStZA2SsR+X27VTggGwpStWaLrjJcDcdDMowtG8MA==
   dependencies:
     tslib "^2.4.0"
-
-"@yarnpkg/lockfile@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@yarnpkg/lockfile/-/lockfile-1.1.0.tgz#e77a97fbd345b76d83245edcd17d393b1b41fb31"
-  integrity sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==
 
 abort-controller@^3.0.0:
   version "3.0.0"
@@ -11367,7 +11427,7 @@ find-yarn-workspace-root2@1.2.16:
     micromatch "^4.0.2"
     pkg-dir "^4.2.0"
 
-find-yarn-workspace-root@^2.0.0, find-yarn-workspace-root@~2.0.0:
+find-yarn-workspace-root@~2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/find-yarn-workspace-root/-/find-yarn-workspace-root-2.0.0.tgz#f47fb8d239c900eb78179aa81b66673eac88f7bd"
   integrity sha512-1IMnbjt4KzsQfnhnzNd8wUEgXZ44IzZaZmnLYx7D5FZlaHt2gW20Cri8Q+E/t5tIj4+epTBub+2Zxu/vNILzqQ==
@@ -12435,13 +12495,6 @@ is-callable@^1.1.4, is-callable@^1.2.4:
   resolved "https://registry.yarnpkg.com/is-callable/-/is-callable-1.2.4.tgz#47301d58dd0259407865547853df6d61fe471945"
   integrity sha512-nsuwtxZfMX67Oryl9LCQ+upnC0Z0BgpwntpS89m1H/TLF0zNfzfLMV/9Wa/6MZsj0acpEjAO0KF1xT6ZdLl95w==
 
-is-ci@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/is-ci/-/is-ci-2.0.0.tgz#6bc6334181810e04b5c22b3d589fdca55026404c"
-  integrity sha512-YfJT7rkpQB0updsdHLGWrvhBJfcfzNNawYDNIyQXJz0IViGf75O8EBPKSdvw2rF+LGCsX4FZ8tcr3b19LcZq4w==
-  dependencies:
-    ci-info "^2.0.0"
-
 is-ci@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/is-ci/-/is-ci-3.0.1.tgz#db6ecbed1bd659c43dac0f45661e7674103d1867"
@@ -13386,13 +13439,6 @@ kind-of@^6.0.0, kind-of@^6.0.2, kind-of@^6.0.3:
   version "6.0.3"
   resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-6.0.3.tgz#07c05034a6c349fa06e24fa35aa76db4580ce4dd"
   integrity sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==
-
-klaw-sync@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/klaw-sync/-/klaw-sync-6.0.0.tgz#1fd2cfd56ebb6250181114f0a581167099c2b28c"
-  integrity sha512-nIeuVSzdCCs6TDPTqI8w1Yre34sSq7AkZ4B3sfOBbI2CgVSB4Du4aLQijFU2+lhAFCwt9+42Hel6lQNIv6AntQ==
-  dependencies:
-    graceful-fs "^4.1.11"
 
 klaw@^1.0.0:
   version "1.3.1"
@@ -14957,7 +15003,7 @@ open@^6.2.0:
   dependencies:
     is-wsl "^1.1.0"
 
-open@^7.0.3, open@^7.4.2:
+open@^7.0.3:
   version "7.4.2"
   resolved "https://registry.yarnpkg.com/open/-/open-7.4.2.tgz#b8147e26dcf3e426316c730089fd71edd29c2321"
   integrity sha512-MVHddDVweXZF3awtlAS+6pgKLlm/JgxZ90+/NBurBoQctVOOB/zDdVjcyPzQ+0laDGbsWgrRkflI65sQeOgT9Q==
@@ -15289,26 +15335,6 @@ password-prompt@^1.0.4:
   dependencies:
     ansi-escapes "^3.1.0"
     cross-spawn "^6.0.5"
-
-patch-package@^6.5.1:
-  version "6.5.1"
-  resolved "https://registry.yarnpkg.com/patch-package/-/patch-package-6.5.1.tgz#3e5d00c16997e6160291fee06a521c42ac99b621"
-  integrity sha512-I/4Zsalfhc6bphmJTlrLoOcAF87jcxko4q0qsv4bGcurbr8IskEOtdnt9iCmsQVGL1B+iUhSQqweyTLJfCF9rA==
-  dependencies:
-    "@yarnpkg/lockfile" "^1.1.0"
-    chalk "^4.1.2"
-    cross-spawn "^6.0.5"
-    find-yarn-workspace-root "^2.0.0"
-    fs-extra "^9.0.0"
-    is-ci "^2.0.0"
-    klaw-sync "^6.0.0"
-    minimist "^1.2.6"
-    open "^7.4.2"
-    rimraf "^2.6.3"
-    semver "^5.6.0"
-    slash "^2.0.0"
-    tmp "^0.0.33"
-    yaml "^1.10.2"
 
 path-browserify@^1.0.0:
   version "1.0.1"
@@ -16556,7 +16582,7 @@ rfdc@^1.3.0:
   resolved "https://registry.yarnpkg.com/rfdc/-/rfdc-1.3.0.tgz#d0b7c441ab2720d05dc4cf26e01c89631d9da08b"
   integrity sha512-V2hovdzFbOi77/WajaSMXk2OLm+xNIeQdMMuB7icj7bk6zi2F8GGAxigcnDFpJHbNyNcgyJDiP+8nOrY5cZGrA==
 
-rimraf@^2.5.4, rimraf@^2.6.1, rimraf@^2.6.2, rimraf@^2.6.3:
+rimraf@^2.5.4, rimraf@^2.6.1, rimraf@^2.6.2:
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.7.1.tgz#35797f13a7fdadc566142c29d4f07ccad483e3ec"
   integrity sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==
@@ -16934,11 +16960,6 @@ sisteransi@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/sisteransi/-/sisteransi-1.0.5.tgz#134d681297756437cc05ca01370d3a7a571075ed"
   integrity sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==
-
-slash@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/slash/-/slash-2.0.0.tgz#de552851a1759df3a8f206535442f5ec4ddeab44"
-  integrity sha512-ZYKh3Wh2z1PpEXWr0MpSBZ0V6mZHAQfYevttO11c51CaWjGTaadiKZ+wVt1PbMlDV5qhMFslpZCemhwOK7C89A==
 
 slash@^3.0.0:
   version "3.0.0"
