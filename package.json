@@ -3,9 +3,9 @@
   "private": true,
   "workspaces": {
     "packages": [
-      "packages/*",
-      "apps/*",
-      "examples/*"
+      "packages/components",
+      "packages/icons",
+      "packages/status-js"
     ]
   },
   "keywords": [],
