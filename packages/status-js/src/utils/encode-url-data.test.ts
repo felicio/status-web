@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'vitest'
 
 import {
-  decodeChannelUrlData,
-  decodeCommunityUrlData,
-  decodeUserUrlData,
-  encodeChannelUrlData,
-  encodeCommunityUrlData,
-  encodeUserUrlData,
+  decodeChannelURLData,
+  decodeCommunityURLData,
+  decodeUserURLData,
+  encodeChannelURLData,
+  encodeCommunityURLData,
+  encodeUserURLData,
 } from './encode-url-data'
 
 describe('Encode URL data', () => {
@@ -17,13 +17,14 @@ describe('Encode URL data', () => {
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus non dui vitae augue elementum laoreet ac pharetra odio. Morbi vestibulum.',
       membersCount: 1_000_000,
       color: '#4360DF',
+      tagIndices: [1, 2, 3, 4],
     }
 
-    const encodedData = encodeCommunityUrlData(data)
-    const decodedData = decodeCommunityUrlData(encodedData)
+    const encodedData = encodeCommunityURLData(data)
+    const decodedData = decodeCommunityURLData(encodedData)
 
     expect(encodedData).toBe(
-      'G74AgK0ObFNmYT-WC_Jcc9KfSjHXAQo9THKEEbgPaJoItceMES-bUxr2Tj9efv447rRefBIUg9CEsSFyjBOFTRdZ9PH2wUOW8hVNYqIje3BC96mZ8uFogqM6k7gCCJnMHy4ulsmsgHTdeh5dAzTNNuG8m9XB8oVeildTCKlRhINnTZh4kAl5sP8SzBB4V2_I41a8PKl3mcS0z_eF5gA='
+      'G8QAgC0OzDOfHB4N5V1zajCKmHvbUAXB6XK6XYLS60WrOmCEEVgFEJaHsLkpTevR-XHc03r4B2pKTOoYJwqbLrLw9u2DhyzlK5rEWE09Dy7oPbVSPhwlOKozCQuAsMX84eJimcwKWNer82gPcCrbhPM-Zx1s3-glfEojrEYRDp61MM2DTNiD92_BDIN3eYvvcQsfT-quKYmaf1_i9Kpzk0Fi'
     )
     expect(decodedData).toEqual(data)
   })
@@ -35,20 +36,22 @@ describe('Encode URL data', () => {
       description:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus non dui vitae augue elementum laoreet ac pharetra odio. Morbi vestibulum.',
       color: '#EAB700',
+      uuid: '30804ea7-bd66-4d5d-91eb-b2dcfe2515b3',
       community: {
         displayName: 'Lorem ipsum dolor sit egestas.',
         description:
           'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus non dui vitae augue elementum laoreet ac pharetra odio. Morbi vestibulum.',
         membersCount: 1_000_000,
         color: '#4360DF',
+        tagIndices: [1, 2, 3, 4],
       },
     }
 
-    const encodedData = encodeChannelUrlData(data)
-    const decodedData = decodeChannelUrlData(encodedData)
+    const encodedData = encodeChannelURLData(data)
+    const decodedData = decodeChannelURLData(encodedData)
 
     expect(encodedData).toBe(
-      'G5EBYCwOMrkec8PbsvkGVxRnInqDN3deAUebRefR-VRkKX2Lwov4MpDwMxkfQRPD49F0k4Sf-ry6-Afpu3HhmwAlpZ1Ojr8DW1uUWCAYYC2BBPOUchsDx3HqUWgXZfSxrjPnLLpPztKMUqbA5QIbjyA2OBqQyfjhy8ViMNIhTbeeR1cHh0a94twfIw-WLbRUvBpCSPYkSozlxBBzMiAP9l-c4QJrahWt-a14eULvHDnr13hu-7cAPSZdhQuX5KrK8tCyzB3qBTf2taCfNIs_d5HkynMDq6wB'
+      'G70BYJwHdqxloHnQV-SSlY7OfdEB_f8igUIHtomMR1igUTaaRSFVBhJ-mjSn8BPqdBHk0PiHrEsBk8WBTo6_gK0tSiwQDLCWpwnmKeU2Bo7j005CuygCCwWebictMe-XLrHfyPEUmLllOKoRCBtcLDALSYQvF5NCoieM550vx-sAmlmSK871edYL67bCK-PPYghGByWEGNMFs9lOIoFx2H_mJDkNNs9bYsbbaRl_uoStzrokUn0u578yAg16mYwLh-287482y4Ibg9640rAW9JNkrfwstJ2qbLLXJ2CYUOa5ftZlFZk2TnzTxIGvfdznZLVXePelos5rWwI='
     )
     expect(decodedData).toEqual(data)
   })
@@ -61,8 +64,8 @@ describe('Encode URL data', () => {
       color: '#EAB700',
     }
 
-    const encodedData = encodeUserUrlData(data)
-    const decodedData = decodeUserUrlData(encodedData)
+    const encodedData = encodeUserURLData(data)
+    const decodedData = decodeUserURLData(encodedData)
 
     expect(encodedData).toBe(
       'GxgBoJwHdsOLl4DWt55mGELN6clGsb1UKTEkT0KUMDfwhWFpUyWH_cefTnvlcSf2JUXCOAWoY5ywzry-LnJ-PjgOGT1Pkb8riQp7ghv6Zu-x70x4m8lncZaRWpDN-sEfT85idUCWvppT_QFNa2A6J3Gr69UJGvWmL3S4DBwX2Jr7LBTNOvFPo6lejNUb-xizlAMUTrokunCH-qNmgtU6UK0J6Vkn8Ce35XGBFObxpxnAtnC_J_D-SrBCBnjiUlwH0ViNr3lHBg=='

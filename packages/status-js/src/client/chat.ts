@@ -11,7 +11,7 @@ import {
 } from '../protos/chat-message_pb'
 import { EmojiReaction, EmojiReaction_Type } from '../protos/emoji-reaction_pb'
 import { MessageType } from '../protos/enums_pb'
-import { createChannelUrl } from '../utils/create-url'
+import { createChannelURLWithPublicKey } from '../utils/create-url'
 import { generateKeyFromPassword } from '../utils/generate-key-from-password'
 import { getNextClock } from '../utils/get-next-clock'
 import { idToContentTopic } from '../utils/id-to-content-topic'
@@ -66,7 +66,6 @@ export class Chat {
   #previousFetchedStartTime?: Date
   #oldestFetchedMessage?: FetchedMessage
   public readonly messageCallbacks: Set<(messages: ChatMessage[]) => void>
-  public link: URL
 
   constructor(options: {
     client: Client
@@ -95,7 +94,6 @@ export class Chat {
     this.#deleteEvents = new Map()
     this.#isActive = false
     this.messageCallbacks = new Set()
-    this.link = createChannelUrl(this.uuid, this.client.community.publicKey)
   }
 
   public static create = async (
@@ -154,6 +152,13 @@ export class Chat {
 
   public getMessage = (id: string) => {
     return this.#messages.get(id)
+  }
+
+  public get link(): URL {
+    return createChannelURLWithPublicKey(
+      this.uuid,
+      this.client.community.publicKey
+    )
   }
 
   public onChange = (callback: (description: CommunityChat) => void) => {

@@ -7,7 +7,7 @@ import { ApplicationMetadataMessage_Type } from '../../protos/application-metada
 import { CommunityRequestToJoin } from '../../protos/communities_pb'
 import { MessageType } from '../../protos/enums_pb'
 import { compressPublicKey } from '../../utils/compress-public-key'
-import { createCommunityUrl } from '../../utils/create-url'
+import { createCommunityURLWithPublicKey } from '../../utils/create-url'
 import { generateKeyFromPassword } from '../../utils/generate-key-from-password'
 import { getNextClock } from '../../utils/get-next-clock'
 import { idToContentTopic } from '../../utils/id-to-content-topic'
@@ -32,7 +32,6 @@ export class Community {
   private symmetricKey!: Uint8Array
   public description!: CommunityDescription
   public chats: Map<string, Chat>
-  public link: URL
   #members: Map<string, Member>
   #callbacks: Set<(description: CommunityDescription) => void>
   #chatUnobserveFns: Map<string, () => void>
@@ -42,7 +41,6 @@ export class Community {
 
     this.publicKey = publicKey
     this.id = publicKey.replace(/^0[xX]/, '')
-    this.link = createCommunityUrl(this.publicKey)
 
     this.#clock = BigInt(Date.now())
     this.chats = new Map()
@@ -84,6 +82,10 @@ export class Community {
 
   public getMember(publicKey: string) {
     return this.#members.get(publicKey)
+  }
+
+  public get link(): URL {
+    return createCommunityURLWithPublicKey(this.publicKey)
   }
 
   public fetch = async () => {

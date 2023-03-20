@@ -2,7 +2,7 @@ import { getPublicKey, utils } from 'ethereum-cryptography/secp256k1'
 import { bytesToHex, hexToBytes } from 'ethereum-cryptography/utils'
 
 import { compressPublicKey } from '../utils/compress-public-key'
-import { createUserUrl } from '../utils/create-url'
+import { createUserURLWithPublicKey } from '../utils/create-url'
 import { generateUsername } from '../utils/generate-username'
 import { signData, verifySignedData } from '../utils/sign-data'
 
@@ -19,7 +19,6 @@ export class Account {
   chatKey: string
   username: string
   membership: MembershipStatus
-  link: URL
 
   constructor(client: Client, initialAccount?: Account) {
     this.#client = client
@@ -34,7 +33,10 @@ export class Account {
     this.chatKey = '0x' + compressPublicKey(this.publicKey)
     this.username = generateUsername('0x' + this.publicKey)
     this.membership = initialAccount ? initialAccount.membership : 'none'
-    this.link = createUserUrl(this.chatKey)
+  }
+
+  public get link(): URL {
+    return createUserURLWithPublicKey(this.chatKey)
   }
 
   async sign(payload: Uint8Array | string) {
