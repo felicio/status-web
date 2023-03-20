@@ -53,6 +53,7 @@
     "@tamagui/theme-base": "1.0.15",
     "expo-blur": "~12.0.1",
     "expo-linear-gradient": "^12.1.1",
+    "expo-modules-core": "^1.2.5",
     "tamagui": "1.0.15"
   },
   "devDependencies": {
