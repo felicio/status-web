@@ -35,14 +35,14 @@
   "dependencies": {
     "@bufbuild/protobuf": "^1.0.0",
     "@scure/base": "^1.1.1",
-    "ethereum-cryptography": "^1.0.3",
+    "ethereum-cryptography": "^1.2.0",
     "js-waku": "^0.30.0",
     "multiformats": "^11.0.1"
   },
   "devDependencies": {
     "@bufbuild/protoc-gen-es": "^1.0.0",
-    "vite": "^4.0.4",
-    "happy-dom": "^5.3.1"
+    "happy-dom": "^5.3.1",
+    "vite": "^4.0.4"
   },
   "files": [
     "dist/",
