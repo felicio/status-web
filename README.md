@@ -122,6 +122,6 @@ echo 'PUBLIC_KEY="0x033c88c950480493e2e759923bd38f9aad88e1b36295757a598679a569e6
 
 And run it:
 
-```sh
+```shell
 yarn workspace with-vite run dev
 ```
