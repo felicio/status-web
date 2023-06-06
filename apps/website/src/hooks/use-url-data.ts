@@ -35,6 +35,7 @@ export const useURLData = (
   const [channelUuid, setChannelUuid] = useState<string>()
   const [info, setInfo] = useState<VerifiedData>()
   const [error, setError] = useState<keyof typeof ERROR_CODES>()
+  const [isLoading, setIsLoading] = useState(false)
 
   const compressPublicKey = type !== 'profile'
 
@@ -55,18 +56,49 @@ export const useURLData = (
           return
         }
 
+        const ensName = hash.match(/^.+\.eth$/)?.[0]
+        if (ensName) {
+          setIsLoading(true)
+          // fixme!: called twice
+          fetch('/api/ens', {
+            method: 'POST',
+            body: JSON.stringify({ ensName, compress: compressPublicKey }),
+          })
+            .then(res => res.json())
+            .then(({ publicKey }) => {
+              console.log(publicKey)
+              if (!publicKey) {
+                setError('INVALID_ENS_NAME')
+                setIsLoading(false)
+
+                return
+              }
+
+              setPublicKey(publicKey)
+              setIsLoading(false)
+            })
+            .catch(error => {
+              console.error(error)
+              setError('INVALID_ENS_NAME')
+            })
+
+          return
+        }
+
         try {
           const publicKey = deserializePublicKey(hash, {
             compress: compressPublicKey,
           })
 
           setPublicKey(publicKey)
+
+          return
         } catch (error) {
           console.error(error)
           setError('INVALID_PUBLIC_KEY')
-        }
 
-        return
+          return
+        }
       }
 
       const hash = window.location.hash.replace('#', '')
@@ -154,5 +186,6 @@ export const useURLData = (
     channelUuid,
     verifiedURLData: info,
     errorCode: error ? ERROR_CODES[error] : undefined,
+    isLoading,
   }
 }

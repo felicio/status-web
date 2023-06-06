@@ -1,3 +1,5 @@
+// import { getServerSession } from 'next-auth/next'
+
 import type {
   decodeChannelURLData,
   decodeCommunityURLData,
@@ -25,6 +27,7 @@ export type ServerSideProps<T = ReturnType<DecodeType>> = {
    */
   unverifiedDecodedData: T | null
   channelUuid?: string
+  // session: Awaited<ReturnType<typeof getServerSession>>
 }
 
 type Query = ParsedUrlQuery & {
@@ -37,6 +40,8 @@ export function createGetServerSideProps(decodeURLData: DecodeType) {
     Query
   > = async context => {
     try {
+      // const session = await getServerSession(context.req, context.res, {})
+
       const { params, res } = context
 
       const channelUuid = params!.slug.match(
@@ -48,6 +53,7 @@ export function createGetServerSideProps(decodeURLData: DecodeType) {
           channelUuid: channelUuid[0],
           uverifiedEncodedData: null,
           unverifiedDecodedData: null,
+          // session,
         }
 
         return { props }
@@ -59,6 +65,7 @@ export function createGetServerSideProps(decodeURLData: DecodeType) {
         const props: ServerSideProps = {
           uverifiedEncodedData: null,
           unverifiedDecodedData: null,
+          // session,
         }
 
         return { props }
@@ -68,6 +75,7 @@ export function createGetServerSideProps(decodeURLData: DecodeType) {
       const props: ServerSideProps = {
         uverifiedEncodedData: encodedData,
         unverifiedDecodedData: decodedData || null,
+        // session,
       }
 
       // fixme: set Cache-Control
