@@ -2,6 +2,7 @@ import '@/styles/global.css'
 import '@/styles/nav-nested-links.css'
 
 import { Provider } from '@status-im/components'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Inter } from 'next/font/google'
 
 import type { Page, PageLayout } from 'next'
@@ -17,12 +18,16 @@ type Props = AppProps & {
   Component: Page
 }
 
+const queryClient = new QueryClient()
+
 export default function App({ Component, pageProps }: Props) {
   const getLayout: PageLayout = Component.getLayout || (page => page)
 
   return (
     <div id="app" className={inter.variable + ' font-sans'}>
-      <Provider>{getLayout(<Component {...pageProps} />)}</Provider>
+      <QueryClientProvider client={queryClient}>
+        <Provider>{getLayout(<Component {...pageProps} />)}</Provider>
+      </QueryClientProvider>
     </div>
   )
 }
