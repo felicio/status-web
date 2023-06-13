@@ -2,12 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply !bg-neutral-100;
-  }
-}
-
 /*
   1. Use a more-intuitive box-sizing model.
 */
