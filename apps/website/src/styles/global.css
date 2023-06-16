@@ -97,3 +97,8 @@ h6 {
 #__next {
   isolation: isolate;
 }
+
+html,
+body {
+  line-height: 0;
+}
