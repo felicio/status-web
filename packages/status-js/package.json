@@ -54,5 +54,10 @@
   },
   "browser": {
     "./src/utils/encode-url-data": false
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint"
+    ]
   }
 }
