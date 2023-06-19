@@ -129,7 +129,7 @@ const BlogPage: Page<Props> = props => {
           </div>
 
           <div>
-            <div className="mb-[44px] xl:mb-12">
+            <div className="mb-[44px] lg:mb-12">
               <HighlightedPostCard post={highlightedPost} />
             </div>
 
@@ -165,7 +165,7 @@ export const HighlightedPostCard = (props: HighlightedPostCardProps) => {
     // <Link href={`/blog/${post.slug}`} className="flex flex-row-reverse gap-7">
     <Link
       href={`/blog/${post.slug}`}
-      className="grid grid-cols-1 gap-5 xl:grid-cols-3 xl:gap-7"
+      className="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-7"
     >
       <div className="col-span-2 w-full flex-[2] shrink-0">
         {/* eslint-disable-next-line jsx-a11y/alt-text */}
@@ -175,7 +175,7 @@ export const HighlightedPostCard = (props: HighlightedPostCardProps) => {
         />
       </div>
 
-      <div className="flex flex-[1] flex-col gap-2 xl:py-5 xl:pr-5">
+      <div className="flex flex-[1] flex-col gap-2 lg:py-5 lg:pr-5">
         <div className="h-6 overflow-hidden">
           {post.primary_tag && (
             <div className="flex">
