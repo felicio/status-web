@@ -212,10 +212,9 @@ const BlogPage: Page<BlogPageProps> = ({
             </div>
 
             <div className="grid auto-rows-[1fr] grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-5">
-              {visiblePosts &&
-                visiblePosts.map(post => (
-                  <PostCard key={post.id} post={post} />
-                ))}
+              {visiblePosts.map(post => (
+                <PostCard key={post.id} post={post} />
+              ))}
             </div>
           </div>
 
