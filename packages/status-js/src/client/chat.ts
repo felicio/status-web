@@ -1,4 +1,3 @@
-import { PageDirection } from '@waku/interfaces'
 import { createDecoder } from '@waku/message-encryption/symmetric'
 
 import { containsOnlyEmoji } from '../helpers/contains-only-emoji'
@@ -220,13 +219,10 @@ export class Chat {
         this.#fetchingMessages = false
       },
       {
-        timeFilter: {
-          startTime: startTime,
-          endTime: endTime,
-        },
-        pageSize: 50,
+        timeStart: startTime,
+        timeEnd: endTime,
         // most recent page first
-        pageDirection: PageDirection.BACKWARD,
+        paginationForward: false,
       }
     )
 

@@ -19,6 +19,7 @@ import type { CommunityDescription as CommunityDescriptionProto } from '../../pr
 import type { CommunityChat } from '../chat'
 import type { Client } from '../client'
 import type { PlainMessage } from '@bufbuild/protobuf'
+import type { ISubscriptionSDK } from '@waku/interfaces'
 
 type CommunityDescription = PlainMessage<CommunityDescriptionProto>
 
@@ -36,7 +37,7 @@ export class Community {
   public chats: Map<string, Chat>
   #members: Map<string, Member>
   #callbacks: Set<(description: CommunityDescription) => void>
-  #chatUnobserveFns: Map<string, () => void>
+  #chatUnobserveFns: Map<string, ISubscriptionSDK['unsubscribe']>
 
   constructor(client: Client, publicKey: string) {
     this.client = client
@@ -139,7 +140,7 @@ export class Community {
 
         this.chats.set(chatUuid, chat)
 
-        const unobserveFn = await this.client.waku.filter.subscribe(
+        const result = await this.client.waku.filter.subscribe(
           [
             createDecoder(chat.contentTopic, chat.symmetricKey, {
               clusterId: 16,
@@ -149,7 +150,14 @@ export class Community {
           this.client.handleWakuMessage
         )
 
-        this.#chatUnobserveFns.set(chat.contentTopic, unobserveFn)
+        if (result.error) {
+          throw new Error('Failed to observe chat messages')
+        }
+
+        this.#chatUnobserveFns.set(
+          chat.contentTopic,
+          result.subscription.unsubscribe
+        )
       }
     )
 
@@ -179,7 +187,7 @@ export class Community {
     }
 
     contentTopics.forEach(contentTopic =>
-      this.#chatUnobserveFns.get(contentTopic)?.()
+      this.#chatUnobserveFns.get(contentTopic)?.([contentTopic])
     )
   }
 

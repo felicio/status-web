@@ -87,6 +87,10 @@ class RequestClient {
     try {
       // Waku
       waku = await createLightNode({
+        networkConfig: {
+          shards: [32],
+          clusterId: 16,
+        },
         defaultBootstrap: false,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
