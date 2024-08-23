@@ -1,8 +1,10 @@
+# note: https://github.com/ds300/patch-package/issues/142#issuecomment-661067320 for changes in package.json
+# yarn patch-package @libp2p/bootstrap --exclude
 diff --git a/node_modules/@libp2p/bootstrap/package.json b/node_modules/@libp2p/bootstrap/package.json
-index 11a2f41..d8ae3f8 100644
+index f37f005..a48ee5c 100644
 --- a/node_modules/@libp2p/bootstrap/package.json
 +++ b/node_modules/@libp2p/bootstrap/package.json
-@@ -24,7 +24,7 @@
+@@ -28,7 +28,7 @@
    ],
    "exports": {
      ".": {

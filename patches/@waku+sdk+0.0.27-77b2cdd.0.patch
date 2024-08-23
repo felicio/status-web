@@ -1,0 +1,46 @@
+# note: https://github.com/ds300/patch-package/issues/142#issuecomment-661067320 for changes in package.json
+# yarn patch-package @libp2p/bootstrap --exclude
+diff --git a/node_modules/@waku/sdk/bundle/libp2p-C19FBLET.js b/node_modules/@waku/sdk/bundle/libp2p-C19FBLET.js
+index e79a758..5a78ef1 100644
+--- a/node_modules/@waku/sdk/bundle/libp2p-C19FBLET.js
++++ b/node_modules/@waku/sdk/bundle/libp2p-C19FBLET.js
+@@ -28356,7 +28356,7 @@ function byteStream(duplex, opts) {
+                     // just read whatever arrives
+                     const { done, value } = await Promise.race([
+                         source.next(),
+-                        abortPromise
++                        // abortPromise
+                     ]);
+                     if (done === true) {
+                         return new Uint8ArrayList();
+@@ -28366,7 +28366,7 @@ function byteStream(duplex, opts) {
+                 while (readBuffer.byteLength < bytes) {
+                     const { value, done } = await Promise.race([
+                         source.next(),
+-                        abortPromise
++                        // abortPromise
+                     ]);
+                     if (done === true) {
+                         throw new UnexpectedEOFError('unexpected end of input');
+diff --git a/node_modules/@waku/sdk/dist/protocols/store.js b/node_modules/@waku/sdk/dist/protocols/store.js
+index af79ae3..4968a58 100644
+--- a/node_modules/@waku/sdk/dist/protocols/store.js
++++ b/node_modules/@waku/sdk/dist/protocols/store.js
+@@ -1,7 +1,7 @@
+ import { StoreCore } from "@waku/core";
+ import { messageHash } from "@waku/message-hash";
+ import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
+-import { BaseProtocolSDK } from "./base_protocol";
++import { BaseProtocolSDK } from "./base_protocol.js";
+ const DEFAULT_NUM_PEERS = 1;
+ const log = new Logger("waku:store:sdk");
+ /**
+diff --git a/node_modules/@waku/sdk/package.json b/node_modules/@waku/sdk/package.json
+index 222119d..4a4f32d 100644
+--- a/node_modules/@waku/sdk/package.json
++++ b/node_modules/@waku/sdk/package.json
+@@ -1 +1 @@
+-{"name":"@waku/sdk","version":"0.0.27-77b2cdd.0","description":"A unified SDK for easy creation and management of js-waku nodes.","types":"./dist/index.d.ts","module":"./dist/index.js","exports":{".":{"types":"./dist/index.d.ts","import":"./dist/index.js"},"./relay":{"types":"./dist/relay-node/index.d.ts","import":"./dist/relay-node/index.js"}},"typesVersions":{"*":{"*":["*","dist/*","dist/*/index"]}},"type":"module","author":"Waku Team","homepage":"https://github.com/waku-org/js-waku/tree/master/packages/sdk#readme","repository":{"type":"git","url":"https://github.com/waku-org/js-waku.git"},"bugs":{"url":"https://github.com/waku-org/js-waku/issues"},"license":"MIT OR Apache-2.0","keywords":["waku","decentralized","secure","communication","web3","ethereum","dapps","privacy"],"scripts":{"build":"run-s build:**","build:esm":"tsc","build:bundle":"rollup --config rollup.config.js","fix":"run-s fix:*","fix:lint":"eslint src *.js --fix","check":"run-s check:*","check:lint":"eslint src *.js","check:spelling":"cspell \"{README.md,src/**/*.ts}\"","check:tsc":"tsc -p tsconfig.dev.json","prepublish":"npm run build","reset-hard":"git clean -dfx -e .idea && git reset --hard && npm i && npm run build"},"engines":{"node":">=18"},"dependencies":{"@chainsafe/libp2p-noise":"^15.1.0","@libp2p/bootstrap":"^10.1.2","@libp2p/identify":"^2.1.2","@libp2p/mplex":"^10.1.2","@libp2p/ping":"^1.1.2","@libp2p/websockets":"^8.1.4","@noble/hashes":"^1.3.3","@waku/core":"0.0.31-77b2cdd.0","@waku/discovery":"0.0.4-77b2cdd.0","@waku/interfaces":"0.0.26-77b2cdd.0","@waku/proto":"0.0.8-77b2cdd.0","@waku/relay":"0.0.14-77b2cdd.0","@waku/utils":"0.0.19-77b2cdd.0","libp2p":"^1.8.1"},"devDependencies":{"@chainsafe/libp2p-gossipsub":"^13.1.0","@rollup/plugin-commonjs":"^25.0.7","@rollup/plugin-json":"^6.0.0","@rollup/plugin-node-resolve":"^15.2.3","@rollup/plugin-replace":"^5.0.5","@waku/build-utils":"*","cspell":"^8.6.1","interface-datastore":"^8.2.10","npm-run-all":"^4.1.5","rollup":"^4.12.0"},"peerDependencies":{"@libp2p/bootstrap":"^10","@waku/core":"0.0.31-77b2cdd.0","@waku/interfaces":"0.0.26-77b2cdd.0","@waku/message-hash":"0.1.15-77b2cdd.0","@waku/relay":"0.0.14-77b2cdd.0","@waku/utils":"0.0.19-77b2cdd.0"},"peerDependenciesMeta":{"@waku/interfaces":{"optional":true},"@libp2p/bootstrap":{"optional":true}},"files":["dist","bundle","src/**/*.ts","!**/*.spec.*","!**/*.json","CHANGELOG.md","LICENSE","README.md"]}
+\ No newline at end of file
++{"name":"@waku/sdk","version":"0.0.27-77b2cdd.0","description":"A unified SDK for easy creation and management of js-waku nodes.","types":"./dist/index.d.ts","module":"./dist/index.js","exports":{".":{"types":"./dist/index.d.ts","import":"./dist/index.js"},"./relay":{"types":"./dist/relay-node/index.d.ts","import":"./dist/relay-node/index.js"},"./base_protocol":{"types":"./dist/protocols/base_protocol.d.ts","import":"./dist/protocols/base_protocol.js"}},"typesVersions":{"*":{"*":["*","dist/*","dist/*/index"]}},"type":"module","author":"Waku Team","homepage":"https://github.com/waku-org/js-waku/tree/master/packages/sdk#readme","repository":{"type":"git","url":"https://github.com/waku-org/js-waku.git"},"bugs":{"url":"https://github.com/waku-org/js-waku/issues"},"license":"MIT OR Apache-2.0","keywords":["waku","decentralized","secure","communication","web3","ethereum","dapps","privacy"],"scripts":{"build":"run-s build:**","build:esm":"tsc","build:bundle":"rollup --config rollup.config.js","fix":"run-s fix:*","fix:lint":"eslint src *.js --fix","check":"run-s check:*","check:lint":"eslint src *.js","check:spelling":"cspell \"{README.md,src/**/*.ts}\"","check:tsc":"tsc -p tsconfig.dev.json","prepublish":"npm run build","reset-hard":"git clean -dfx -e .idea && git reset --hard && npm i && npm run build"},"engines":{"node":">=18"},"dependencies":{"@chainsafe/libp2p-noise":"^15.1.0","@libp2p/bootstrap":"^10.1.2","@libp2p/identify":"^2.1.2","@libp2p/mplex":"^10.1.2","@libp2p/ping":"^1.1.2","@libp2p/websockets":"^8.1.4","@noble/hashes":"^1.3.3","@waku/core":"0.0.31-77b2cdd.0","@waku/discovery":"0.0.4-77b2cdd.0","@waku/interfaces":"0.0.26-77b2cdd.0","@waku/proto":"0.0.8-77b2cdd.0","@waku/relay":"0.0.14-77b2cdd.0","@waku/utils":"0.0.19-77b2cdd.0","libp2p":"^1.8.1"},"devDependencies":{"@chainsafe/libp2p-gossipsub":"^13.1.0","@rollup/plugin-commonjs":"^25.0.7","@rollup/plugin-json":"^6.0.0","@rollup/plugin-node-resolve":"^15.2.3","@rollup/plugin-replace":"^5.0.5","@waku/build-utils":"*","cspell":"^8.6.1","interface-datastore":"^8.2.10","npm-run-all":"^4.1.5","rollup":"^4.12.0"},"peerDependencies":{"@libp2p/bootstrap":"^10","@waku/core":"0.0.31-77b2cdd.0","@waku/interfaces":"0.0.26-77b2cdd.0","@waku/message-hash":"0.1.15-77b2cdd.0","@waku/relay":"0.0.14-77b2cdd.0","@waku/utils":"0.0.19-77b2cdd.0"},"peerDependenciesMeta":{"@waku/interfaces":{"optional":true},"@libp2p/bootstrap":{"optional":true}},"files":["dist","bundle","src/**/*.ts","!**/*.spec.*","!**/*.json","CHANGELOG.md","LICENSE","README.md"]}
+\ No newline at end of file

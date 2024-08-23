@@ -1,0 +1,13 @@
+diff --git a/node_modules/libp2p/dist/src/upgrader.js b/node_modules/libp2p/dist/src/upgrader.js
+index 9de0cd8..71d5dc1 100644
+--- a/node_modules/libp2p/dist/src/upgrader.js
++++ b/node_modules/libp2p/dist/src/upgrader.js
+@@ -339,7 +339,7 @@ export class DefaultUpgrader {
+                     muxedStream.log('selected protocol %s', protocol);
+                     const outgoingLimit = findOutgoingStreamLimit(protocol, this.components.registrar, options);
+                     const streamCount = countStreams(protocol, 'outbound', connection);
+-                    if (streamCount >= outgoingLimit) {
++                    if (streamCount >= 10) {
+                         const err = new CodeError(`Too many outbound protocol streams for protocol "${protocol}" - ${streamCount}/${outgoingLimit}`, codes.ERR_TOO_MANY_OUTBOUND_PROTOCOL_STREAMS);
+                         muxedStream.abort(err);
+                         throw err;

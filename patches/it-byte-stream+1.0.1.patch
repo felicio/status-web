@@ -1,0 +1,13 @@
+diff --git a/node_modules/it-byte-stream/dist/src/index.js b/node_modules/it-byte-stream/dist/src/index.js
+index acbd74b..de88949 100644
+--- a/node_modules/it-byte-stream/dist/src/index.js
++++ b/node_modules/it-byte-stream/dist/src/index.js
+@@ -61,7 +61,7 @@ export function byteStream(duplex) {
+             let listener;
+             const abortPromise = new Promise((resolve, reject) => {
+                 listener = () => {
+-                    reject(new AbortError('Read aborted'));
++                    // reject(new AbortError('Read aborted'));
+                 };
+                 options?.signal?.addEventListener('abort', listener);
+             });
