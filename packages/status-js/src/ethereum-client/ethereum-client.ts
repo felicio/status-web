@@ -1,5 +1,5 @@
 import { Point } from 'ethereum-cryptography/secp256k1'
-import { ethers } from 'ethers'
+import { ethers, FetchRequest } from 'ethers'
 
 import { publicKeyToETHAddress } from '../utils/public-key-to-eth-address'
 
@@ -7,7 +7,9 @@ export class EthereumClient {
   #provider: ethers.JsonRpcApiProvider
 
   constructor(url: string) {
-    this.#provider = new ethers.JsonRpcProvider(url)
+    const fetchRequest = new FetchRequest(url)
+    fetchRequest.setHeader('Origin', 'https://status.app')
+    this.#provider = new ethers.JsonRpcProvider(fetchRequest)
   }
 
   stop() {
