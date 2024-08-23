@@ -55,7 +55,7 @@
     "@waku/message-hash": "^0.1.15-77b2cdd.0",
     "@waku/sdk": "^0.0.27-77b2cdd.0",
     "ethereum-cryptography": "^1.0.3",
-    "ethers": "^6.2.1",
+    "ethers": "^6.13.2",
     "multiformats": "^11.0.1"
   },
   "devDependencies": {
