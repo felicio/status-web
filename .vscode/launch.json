@@ -31,7 +31,10 @@
         "DEBUG_COLORS": "1",
         "VITE_NODE": "true"
       },
-      "runtimeArgs": ["--preserve-symlinks"],
+      "runtimeArgs": [
+        "--preserve-symlinks",
+        "--experimental-global-customevent"
+      ],
       "outFiles": ["${workspaceFolder}/**/*.js"],
       "resolveSourceMapLocations": ["**/*"],
       "outputCapture": "std"
