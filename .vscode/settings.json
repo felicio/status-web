@@ -16,6 +16,7 @@
     "./packages/components",
     "./packages/status-js",
     "./packages/wallet",
+    "./apps/hub",
     "./apps/connector",
     "./apps/portfolio",
     "./apps/wallet",
@@ -41,6 +42,8 @@
     "**/node_modules": true,
     "**/bower_components": true,
     "**/*.code-search": true,
-    "**/.output": true
-  }
+    "**/.output": true,
+    "**/build": true
+  },
+  "vitest.maximumConfigs": 6
 }
