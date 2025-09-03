@@ -112,7 +112,7 @@ const Sidebar = (props: Props) => {
             </ul>
 
             {/* Separator with Title */}
-            <div className="my-6">
+            <div className="my-3">
               <div className="mb-2 px-4">
                 <h3 className="text-13 font-medium leading-[1.4] tracking-[-0.3%] text-purple">
                   Tokens
@@ -129,7 +129,7 @@ const Sidebar = (props: Props) => {
             </ul>
 
             {/* Separator */}
-            <div className="my-6 h-px bg-customisation-purple-50/40"></div>
+            <div className="my-3 h-px bg-customisation-purple-50/40"></div>
 
             {/* Bottom Section */}
             <ul className="space-y-1">
