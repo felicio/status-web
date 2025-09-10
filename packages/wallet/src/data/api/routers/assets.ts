@@ -15,12 +15,12 @@ import {
   alchemy_fetchTokenPriceHistory,
   alchemy_fetchTokensPrice,
 } from '../../services/alchemy-prices'
-import {
-  // CRYPTOCOMPARE_REVALIDATION_TIMES,
-  // fetchTokenMetadata,
-  legacy_fetchTokenPriceHistory,
-  // legacy_fetchTokensPrice,
-} from '../../services/cryptocompare'
+// import {
+//   CRYPTOCOMPARE_REVALIDATION_TIMES,
+//   fetchTokenMetadata,
+//   legacy_fetchTokenPriceHistory,
+//   legacy_fetchTokensPrice,
+// } from '../../services/cryptocompare'
 import { publicProcedure, router } from '../lib/trpc'
 
 import type { NetworkType } from '../types'
@@ -661,11 +661,7 @@ async function tokenPriceChart({
   // console.log(' DELAY tokenPriceChart()')
   // await delay()
 
-  // Use CryptoCompare for 24H charts since Alchemy only provides daily granularity
-  const data =
-    days === '1'
-      ? await legacy_fetchTokenPriceHistory(symbol, days)
-      : await alchemy_fetchTokenPriceHistory(symbol, days)
+  const data = await alchemy_fetchTokenPriceHistory(symbol, days)
 
   const mappedData = data.map(({ time, close }) => ({
     date: new Date(time * 1000).toISOString(),
@@ -691,11 +687,7 @@ async function nativeTokenPriceChart({
   // console.log(' DELAY nativeTokenPriceChart()')
   // await delay()
 
-  // Use CryptoCompare for 24H charts since Alchemy only provides daily granularity
-  const data =
-    days === '1'
-      ? await legacy_fetchTokenPriceHistory(symbol, days)
-      : await alchemy_fetchTokenPriceHistory(symbol, days)
+  const data = await alchemy_fetchTokenPriceHistory(symbol, days)
 
   const mappedData = data.map(({ time, close }) => ({
     date: new Date(time * 1000).toISOString(),

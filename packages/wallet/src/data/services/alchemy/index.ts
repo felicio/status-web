@@ -11,15 +11,16 @@ import retry from 'async-retry'
 import { formatEther } from 'ethers'
 
 import { serverEnv } from '../../../config/env.server.mjs'
+import { alchemy_fetchTokensPrice } from '../alchemy-prices'
 import {
   getRandomApiKey,
   markApiKeyAsRateLimited,
   markApiKeyAsSuccessful,
 } from '../api-key-rotation'
-import {
-  CRYPTOCOMPARE_REVALIDATION_TIMES,
-  legacy_fetchTokensPrice,
-} from '../cryptocompare'
+// import {
+//   CRYPTOCOMPARE_REVALIDATION_TIMES,
+//   legacy_fetchTokensPrice,
+// } from '../cryptocompare'
 import { estimateConfirmationTime, processFeeHistory } from './utils'
 
 import type { NetworkType } from '../../api/types'
@@ -926,10 +927,11 @@ export async function getFeeRate(
             params: ['0x4', 'latest', [10, 50, 90]],
           })
         }),
-        legacy_fetchTokensPrice(
-          ['ETH'],
-          CRYPTOCOMPARE_REVALIDATION_TIMES.TRADING_PRICE,
-        ),
+        // legacy_fetchTokensPrice(
+        //   ['ETH'],
+        //   CRYPTOCOMPARE_REVALIDATION_TIMES.TRADING_PRICE,
+        // ),
+        alchemy_fetchTokensPrice(['ETH']),
       ])
   } catch (error) {
     console.error('Failed to fetch fee rate:', error)

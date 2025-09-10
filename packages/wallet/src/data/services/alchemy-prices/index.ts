@@ -2,6 +2,9 @@
  * Alchemy Prices + Token API service
  * Alternative to CryptoCompare for price and token metadata fetching
  *
+ * Enhanced to calculate 24h price change percentage by fetching both current
+ * and historical prices (24h ago) and computing the percentage change.
+ *
  * @see https://www.alchemy.com/docs/reference/prices-api-quickstart for Prices API
  * @see https://www.alchemy.com/docs/reference/alchemy-gettokenmetadata for Token API
  * @see https://dashboard.alchemy.com for API key management
@@ -139,6 +142,7 @@ function getNetworkId(network: NetworkType): number {
 /**
  * Fetch current token prices using Alchemy Prices API
  * Maps to CryptoCompare's legacy_fetchTokensPrice function
+ * Enhanced to calculate 24h price change percentage
  */
 export async function alchemy_fetchTokensPrice(
   symbols: string[],
@@ -155,7 +159,7 @@ export async function alchemy_fetchTokensPrice(
 
   for (const batch of batches) {
     try {
-      const batchResult = await _fetchTokenPricesBatch(batch)
+      const batchResult = await _fetchTokenPricesBatchWith24hChange(batch)
       Object.assign(results, batchResult)
     } catch (error) {
       console.warn(`Failed to fetch prices for batch:`, batch, error)
@@ -190,8 +194,224 @@ async function _fetchTokenPricesBatch(
 }
 
 /**
+ * Fetch current token prices and calculate comprehensive metrics
+ * by fetching current, 24h ago, and 1h ago prices for complete data
+ */
+async function _fetchTokenPricesBatchWith24hChange(
+  symbols: string[],
+): Promise<AlchemyTransformedPriceResponse> {
+  // Fetch current prices
+  const currentPrices = await _fetchTokenPricesBatch(symbols)
+
+  // Calculate timestamps for different periods
+  const now = new Date()
+  const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
+
+  // Fetch historical prices for different time periods
+  const historicalPrices24h: Record<string, number> = {}
+  const historicalPrices1h: Record<string, number> = {}
+  const volumeData24h: Record<string, number> = {}
+
+  for (const symbol of symbols) {
+    try {
+      // Fetch 24h ago price
+      const price24h = await _fetchTokenPriceAtTime(symbol, twentyFourHoursAgo)
+      if (price24h !== null) {
+        historicalPrices24h[symbol] = price24h
+      }
+
+      // Fetch 1h ago price
+      const price1h = await _fetchTokenPriceAtTime(symbol, oneHourAgo)
+      if (price1h !== null) {
+        historicalPrices1h[symbol] = price1h
+      }
+
+      // Fetch 24h volume data
+      const volume = await _fetchTokenVolume24h(symbol)
+      if (volume !== null) {
+        volumeData24h[symbol] = volume
+      }
+    } catch (error) {
+      console.warn(`Failed to fetch historical data for ${symbol}:`, error)
+    }
+  }
+
+  // Calculate comprehensive metrics and update the response
+  const enhancedResults: AlchemyTransformedPriceResponse = {}
+
+  for (const [symbol, priceData] of Object.entries(currentPrices)) {
+    const currentPrice = priceData.USD.PRICE
+    const historicalPrice24h = historicalPrices24h[symbol]
+    const historicalPrice1h = historicalPrices1h[symbol]
+    const volume24h = volumeData24h[symbol]
+
+    // Calculate 24h change percentage
+    let changePercentage24h = 0
+    if (historicalPrice24h && historicalPrice24h > 0) {
+      changePercentage24h =
+        ((currentPrice - historicalPrice24h) / historicalPrice24h) * 100
+    }
+
+    // Calculate 1h change percentage
+    let changePercentage1h = 0
+    if (historicalPrice1h && historicalPrice1h > 0) {
+      changePercentage1h =
+        ((currentPrice - historicalPrice1h) / historicalPrice1h) * 100
+    }
+
+    // Calculate market cap (using circulating supply if available)
+    const circulatingSupply = priceData.USD.CIRCULATINGSUPPLY || 0
+    const marketCap = currentPrice * circulatingSupply
+
+    // Create enhanced price response with all required fields
+    enhancedResults[symbol] = {
+      USD: {
+        ...priceData.USD,
+        // 24h metrics
+        CHANGEPCT24HOUR: changePercentage24h,
+        CHANGE24HOUR: currentPrice - (historicalPrice24h || currentPrice),
+        OPEN24HOUR: historicalPrice24h || currentPrice,
+        HIGH24HOUR: Math.max(currentPrice, historicalPrice24h || currentPrice),
+        LOW24HOUR: Math.min(currentPrice, historicalPrice24h || currentPrice),
+        // 1h metrics
+        CHANGEPCTHOUR: changePercentage1h,
+        CHANGEHOUR: currentPrice - (historicalPrice1h || currentPrice),
+        OPENHOUR: historicalPrice1h || currentPrice,
+        HIGHHOUR: Math.max(currentPrice, historicalPrice1h || currentPrice),
+        LOWHOUR: Math.min(currentPrice, historicalPrice1h || currentPrice),
+        // Volume metrics
+        VOLUME24HOUR: volume24h || 0,
+        VOLUME24HOURTO: volume24h || 0,
+        TOTALVOLUME24H: volume24h || 0,
+        TOTALVOLUME24HTO: volume24h || 0,
+        // Market cap metrics
+        MKTCAP: marketCap,
+        CIRCULATINGSUPPLYMKTCAP: marketCap,
+        // Supply metrics (if available from token metadata)
+        CIRCULATINGSUPPLY: circulatingSupply,
+      },
+    }
+  }
+
+  return enhancedResults
+}
+
+/**
+ * Fetch token price at a specific time using Alchemy historical API
+ */
+async function _fetchTokenPriceAtTime(
+  symbol: string,
+  targetTime: Date,
+): Promise<number | null> {
+  try {
+    // Create a time window around the target time (± 1 hour for better data availability)
+    const startTime = new Date(targetTime.getTime() - 60 * 60 * 1000) // 1 hour before
+    const endTime = new Date(targetTime.getTime() + 60 * 60 * 1000) // 1 hour after
+
+    const url = new URL(
+      `https://api.g.alchemy.com/prices/v1/${getRandomApiKey(serverEnv.ALCHEMY_API_KEYS)}/tokens/historical`,
+    )
+
+    const requestBody = {
+      symbol,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+    }
+
+    const body = await _retryPricesAPI(async () =>
+      _fetchPricesAPI<AlchemyHistoricalTokenPricesResponseBody>(
+        url,
+        'POST',
+        ALCHEMY_PRICES_REVALIDATION_TIMES.PRICE_FOR_DATE,
+        requestBody,
+      ),
+    )
+
+    // Get the closest price to our target time
+    if (body.data && body.data.length > 0) {
+      const closestPrice = body.data.reduce((closest, current) => {
+        const currentDiff = Math.abs(
+          new Date(current.timestamp).getTime() - targetTime.getTime(),
+        )
+        const closestDiff = Math.abs(
+          new Date(closest.timestamp).getTime() - targetTime.getTime(),
+        )
+        return currentDiff < closestDiff ? current : closest
+      })
+
+      return parseFloat(closestPrice.value)
+    }
+
+    return null
+  } catch (error) {
+    console.warn(
+      `Failed to fetch historical price for ${symbol} at ${targetTime.toISOString()}:`,
+      error,
+    )
+    return null
+  }
+}
+
+/**
+ * Fetch 24h volume data for a token using Alchemy historical API
+ */
+async function _fetchTokenVolume24h(symbol: string): Promise<number | null> {
+  try {
+    const now = new Date()
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+
+    const url = new URL(
+      `https://api.g.alchemy.com/prices/v1/${getRandomApiKey(serverEnv.ALCHEMY_API_KEYS)}/tokens/historical`,
+    )
+
+    const requestBody = {
+      symbol,
+      startTime: twentyFourHoursAgo.toISOString(),
+      endTime: now.toISOString(),
+    }
+
+    const body = await _retryPricesAPI(async () =>
+      _fetchPricesAPI<AlchemyHistoricalTokenPricesResponseBody>(
+        url,
+        'POST',
+        ALCHEMY_PRICES_REVALIDATION_TIMES.PRICE_HISTORY,
+        requestBody,
+      ),
+    )
+
+    // Sum up the volume from all data points in the 24h period
+    if (body.data && body.data.length > 0) {
+      const totalVolume = body.data.reduce((sum, dataPoint) => {
+        const volume = parseFloat(dataPoint.totalVolume || '0')
+        return sum + volume
+      }, 0)
+
+      return totalVolume
+    }
+
+    return null
+  } catch (error) {
+    console.warn(`Failed to fetch 24h volume for ${symbol}:`, error)
+    return null
+  }
+}
+
+/**
  * Fetch historical token prices using Alchemy Prices API
  * Maps to CryptoCompare's legacy_fetchTokenPriceHistory function
+ *
+ * @see https://www.alchemy.com/docs/data/prices-api/prices-api-endpoints/prices-api-endpoints/get-historical-token-prices
+ *
+ * 40 CU per request https://www.alchemy.com/docs/reference/compute-unit-costs#prices-api
+ *
+ * Note: Alchemy limits intervals to specific data points per request:
+ * - 1h intervals: 30 days or 720 data points
+ * - 1d intervals: 365 days or 365 data points
+ * This function automatically optimizes intervals and batches requests as needed:
+ * - 90+ days: Uses 1-day intervals with batching (365-day chunks)
+ * - 31-89 days: Uses 1-hour intervals with batching (30-day chunks)
+ * - ≤30 days: Uses 1-hour intervals (single request)
  */
 export async function alchemy_fetchTokenPriceHistory(
   symbol: string,
@@ -199,6 +419,44 @@ export async function alchemy_fetchTokenPriceHistory(
 ): Promise<AlchemyTransformedHistoryResponse> {
   const { startTime, endTime } = _calculateDateRange(days)
 
+  // Calculate the total time span in days
+  const totalDays = Math.ceil(
+    (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60 * 24),
+  )
+
+  // For 90+ days, use 1-day intervals with batching if needed
+  if (totalDays >= 90) {
+    return await _fetchTokenPriceHistoryBatchedWithInterval(
+      symbol,
+      startTime,
+      endTime,
+      '1d',
+    )
+  }
+
+  // For 30 days or less, use 1-hour intervals with single request
+  if (totalDays <= 30) {
+    return await _fetchTokenPriceHistoryWithInterval(
+      symbol,
+      startTime,
+      endTime,
+      '1h',
+    )
+  }
+
+  // For 31-89 days, use 1-hour intervals with batching
+  return await _fetchTokenPriceHistoryBatched(symbol, startTime, endTime)
+}
+
+/**
+ * Fetch historical prices for a single date range with specified interval
+ */
+async function _fetchTokenPriceHistoryWithInterval(
+  symbol: string,
+  startTime: Date,
+  endTime: Date,
+  interval: '1h' | '1d',
+): Promise<AlchemyTransformedHistoryResponse> {
   const url = new URL(
     `https://api.g.alchemy.com/prices/v1/${getRandomApiKey(serverEnv.ALCHEMY_API_KEYS)}/tokens/historical`,
   )
@@ -207,6 +465,7 @@ export async function alchemy_fetchTokenPriceHistory(
     symbol,
     startTime: startTime.toISOString(),
     endTime: endTime.toISOString(),
+    interval,
   }
 
   const body = await _retryPricesAPI(async () =>
@@ -219,6 +478,113 @@ export async function alchemy_fetchTokenPriceHistory(
   )
 
   return _transformHistoryResponse(body)
+}
+
+/**
+ * Fetch historical prices for a large date range by batching with specified interval
+ */
+async function _fetchTokenPriceHistoryBatchedWithInterval(
+  symbol: string,
+  startTime: Date,
+  endTime: Date,
+  interval: '1h' | '1d',
+): Promise<AlchemyTransformedHistoryResponse> {
+  const allResults: AlchemyTransformedHistoryResponse = []
+
+  // Set batch size based on interval
+  const batchSizeDays = interval === '1h' ? 30 : 365 // 30 days for 1h, 365 days for 1d
+  const batchSizeMs = batchSizeDays * 24 * 60 * 60 * 1000
+
+  let currentStart = new Date(startTime)
+  const finalEnd = new Date(endTime)
+  let batchCount = 0
+  const maxBatches =
+    Math.ceil((finalEnd.getTime() - startTime.getTime()) / batchSizeMs) + 10 // Safety buffer
+
+  while (currentStart < finalEnd && batchCount < maxBatches) {
+    // Calculate the end time for this batch
+    const currentEnd = new Date(
+      Math.min(currentStart.getTime() + batchSizeMs, finalEnd.getTime()),
+    )
+
+    // Safety check: ensure we're making progress
+    if (currentEnd.getTime() <= currentStart.getTime()) {
+      console.warn(
+        `Batch end time (${currentEnd.toISOString()}) is not after start time (${currentStart.toISOString()}), breaking to prevent infinite loop`,
+      )
+      break
+    }
+
+    try {
+      console.log(
+        `Fetching price history for ${symbol} from ${currentStart.toISOString()} to ${currentEnd.toISOString()} (batch ${batchCount + 1}, ${interval} interval)`,
+      )
+
+      const batchResult = await _fetchTokenPriceHistoryWithInterval(
+        symbol,
+        currentStart,
+        currentEnd,
+        interval,
+      )
+      allResults.push(...batchResult)
+
+      // Move to the next batch (start from the last timestamp + appropriate interval to avoid overlap)
+      if (batchResult.length > 0) {
+        const lastTimestamp = batchResult[batchResult.length - 1].time
+        const newStart = new Date((lastTimestamp + 1) * 1000) // +1 second to avoid overlap
+
+        // Safety check: ensure we're making forward progress
+        if (newStart.getTime() <= currentStart.getTime()) {
+          console.warn(
+            `New start time (${newStart.toISOString()}) is not after current start time (${currentStart.toISOString()}), advancing by ${interval}`,
+          )
+          const advanceMs =
+            interval === '1h' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000
+          currentStart = new Date(currentEnd.getTime() + advanceMs)
+        } else {
+          currentStart = newStart
+        }
+      } else {
+        // No data returned, advance by appropriate interval
+        const advanceMs =
+          interval === '1h' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000
+        currentStart = new Date(currentEnd.getTime() + advanceMs)
+      }
+    } catch (error) {
+      console.warn(`Failed to fetch price history batch for ${symbol}:`, error)
+      // Skip this batch and move to the next one
+      const advanceMs = interval === '1h' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000
+      currentStart = new Date(currentEnd.getTime() + advanceMs)
+    }
+
+    batchCount++
+  }
+
+  if (batchCount >= maxBatches) {
+    console.warn(
+      `Reached maximum batch limit (${maxBatches}) for ${symbol}, stopping to prevent infinite loop`,
+    )
+  }
+
+  // Sort results by timestamp to ensure chronological order
+  return allResults.sort((a, b) => a.time - b.time)
+}
+
+/**
+ * Fetch historical prices for a large date range by batching into 30-day chunks (1h intervals only)
+ * @deprecated Use _fetchTokenPriceHistoryBatchedWithInterval instead
+ */
+async function _fetchTokenPriceHistoryBatched(
+  symbol: string,
+  startTime: Date,
+  endTime: Date,
+): Promise<AlchemyTransformedHistoryResponse> {
+  return _fetchTokenPriceHistoryBatchedWithInterval(
+    symbol,
+    startTime,
+    endTime,
+    '1h',
+  )
 }
 
 /**
@@ -459,7 +825,7 @@ function _createDefaultPriceResponse(
     TOPTIERVOLUME24HOUR: 0,
     TOPTIERVOLUME24HOURTO: 0,
     CHANGE24HOUR: 0,
-    CHANGEPCT24HOUR: 0, // This is the key field that was missing
+    CHANGEPCT24HOUR: 0,
     CHANGEDAY: 0,
     CHANGEPCTDAY: 0,
     CHANGEHOUR: 0,
@@ -504,6 +870,7 @@ async function _fetchPricesAPI<T>(
   revalidate: number,
   body?: Record<string, unknown>,
 ): Promise<T> {
+  console.log(JSON.stringify(body, null, 2))
   const response = await fetch(url, {
     method,
     headers: {
