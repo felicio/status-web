@@ -2,15 +2,20 @@ import { Text } from '@status-im/components'
 import { getTranslations } from 'next-intl/server'
 
 import { jsonLD, JSONLDScript } from '~/utils/json-ld'
+import { buildLandingPageStructuredData } from '~/utils/structured-data'
 import { Metadata } from '~app/_metadata'
 import { Body } from '~components/body'
-import { Link } from '~components/link'
 import { getPosts } from '~website/_lib/ghost'
 
-import { HighlightedPostCard } from './_components/highlighted-post-card'
-import { InfinitePostGrid } from './_components/infinite-post-grid'
-import { TAGS } from './_tags'
+import { isBlogCategory } from './_categories'
+import { BlogSearch } from './_components/blog-search'
+import { searchBlogPosts } from './_utils/search.server'
+import {
+  BLOG_SEARCH_QUERY_MAX_LENGTH,
+  BLOG_SEARCH_RESULTS_PER_PAGE,
+} from './_utils/search-config'
 
+import type { BlogSearchResults } from './_utils/search-config'
 import type { Metadata as NextMetadata } from 'next'
 
 export const revalidate = 3600 // 1 hour
@@ -27,21 +32,59 @@ export async function generateMetadata(): Promise<NextMetadata> {
   })
 }
 
-export default async function BlogPage() {
-  const t = await getTranslations('blog')
-  const { posts: initialPosts, meta } = await getPosts()
+type Props = {
+  searchParams: Promise<{
+    q?: string | string[]
+    category?: string | string[]
+  }>
+}
 
-  const highlightedPost = initialPosts[0]
+export default async function BlogPage({ searchParams }: Props) {
+  const t = await getTranslations('blog')
+  const [{ posts: initialPosts, meta }, params] = await Promise.all([
+    getPosts(),
+    searchParams,
+  ])
+  const query =
+    typeof params.q === 'string'
+      ? params.q.slice(0, BLOG_SEARCH_QUERY_MAX_LENGTH)
+      : ''
+  const categoryParam =
+    typeof params.category === 'string' ? params.category : ''
+  const category = isBlogCategory(categoryParam) ? categoryParam : undefined
+  const isFiltering = query.trim().length > 0 || Boolean(category)
+  let initialResults: BlogSearchResults | null = null
+
+  if (isFiltering) {
+    try {
+      initialResults = await searchBlogPosts({
+        query,
+        category,
+        limit: BLOG_SEARCH_RESULTS_PER_PAGE,
+      })
+    } catch (error) {
+      // A missing or unreadable index must not take the whole page down. The
+      // client falls back to requesting /api/blog/search and surfaces its own
+      // "search unavailable" state if that fails too.
+      console.error('Failed to render initial blog search results:', error)
+    }
+  }
 
   const websiteSchema = jsonLD.website({
     name: 'Status Blog',
     url: 'https://status.app/blog',
     description: t('description'),
+    searchUrl: 'https://status.app/blog?q={search_term_string}',
+  })
+  const webpageSchema = buildLandingPageStructuredData({
+    name: t('title'),
+    description: t('description'),
+    path: '/blog',
   })
 
   return (
     <>
-      <JSONLDScript schema={websiteSchema} />
+      <JSONLDScript schema={[websiteSchema, webpageSchema]} />
       <Body>
         <div className="px-5">
           <div className="mx-auto max-w-[1184px] pb-24 pt-12 xl:pb-32 xl:pt-20">
@@ -50,38 +93,13 @@ export default async function BlogPage() {
               <Text size={19}>{t('description')}</Text>
             </div>
 
-            <div className="-ml-5 -mr-8 flex gap-2 overflow-x-scroll pb-12 pl-5 pr-8 scrollbar-none">
-              {Object.values(TAGS).map(({ id, slug, icon, name }) => (
-                <div key={id} className="shrink-0">
-                  <Link
-                    href={`/blog/tag/${slug}`}
-                    className="flex h-[32px] select-none items-center gap-2 rounded-10 border border-solid border-neutral-30 pl-2 pr-3 shadow-1 active:border-neutral-50 hover:border-neutral-40"
-                    scroll={false}
-                  >
-                    {icon}
-                    <Text size={15} weight="medium">
-                      {name}
-                    </Text>
-                  </Link>
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <div className="mb-[44px] 2xl:mb-12">
-                {highlightedPost && (
-                  <HighlightedPostCard post={highlightedPost} />
-                )}
-              </div>
-
-              <InfinitePostGrid
-                type="posts"
-                initialPosts={initialPosts}
-                meta={meta}
-                queryKey="all"
-                skip={1}
-              />
-            </div>
+            <BlogSearch
+              initialPosts={initialPosts}
+              meta={meta}
+              initialResults={initialResults}
+              initialQuery={query}
+              initialCategory={category}
+            />
           </div>
         </div>
       </Body>

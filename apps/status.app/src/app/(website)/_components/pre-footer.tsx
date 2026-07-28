@@ -10,13 +10,25 @@ import { Image } from '~components/assets'
 import { DownloadDesktopButton } from './download-desktop-button'
 import { DownloadMobileButton } from './download-mobile-button'
 
-const Prefooter = () => {
+type PrefooterPath = '/' | '/apps'
+
+type PrefooterCmsCopy = Partial<
+  Record<PrefooterPath, { title?: string; description?: string }>
+>
+
+type PrefooterProps = {
+  cmsCopy?: PrefooterCmsCopy
+}
+
+const Prefooter = ({ cmsCopy }: PrefooterProps) => {
   const pathname = usePathname()!
   const t = useTranslations('prefooter')
 
   if (!['/', '/apps'].includes(pathname)) {
     return null
   }
+
+  const pathCopy = cmsCopy?.[pathname as PrefooterPath]
 
   return (
     <div className="border-b border-dashed border-neutral-80 bg-neutral-100 p-5 py-30 lg:border-0">
@@ -28,10 +40,10 @@ const Prefooter = () => {
             className="size-20"
           />
           <h1 className="py-4 pb-3 pt-5 text-40 font-bold text-white-100 lg:pb-5 lg:text-88">
-            {t('title')}
+            {pathCopy?.title ?? t('title')}
           </h1>
           <Text size={19} color="$white-100">
-            {t('description')}
+            {pathCopy?.description ?? t('description')}
           </Text>
           <div className="relative flex w-[237px] flex-col items-center justify-center pt-8 md:w-full">
             <div

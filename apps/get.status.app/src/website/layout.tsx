@@ -7,27 +7,35 @@ import { Prefooter } from '~website/_components/pre-footer'
 import { PromoBar } from '~website/_components/promo-bar'
 import { WebsiteProvider } from '~website/_provider'
 
+import type { CmsPrefooterCopyByPath } from '../lib/page-copy'
+
 type Props = {
   children: React.ReactNode
+  prefooterCopy?: CmsPrefooterCopyByPath
 }
 
 export default async function WebsiteLayout(props: Props) {
-  const { children } = props
+  const { children, prefooterCopy } = props
 
   return (
     <WebsiteProvider mobileRelease={null} desktopRelease={null}>
-      <PromoBar />
-      <FloatingMenu />
-      <NavDesktop />
-      <NavMobile />
-      <ParallaxProvider>
-        <div className="flex flex-1 flex-col overflow-x-clip xl:px-1 xl:pb-1">
-          {children}
+      <div className="flex min-h-dvh flex-col">
+        <PromoBar />
+        <FloatingMenu />
+        <NavDesktop />
+        <NavMobile />
+        <div className="flex min-h-0 flex-1 flex-col">
+          <ParallaxProvider>
+            <div className="grid min-h-0 flex-1 grid-rows-[1fr_auto_auto] overflow-x-clip xl:px-1 xl:pb-1">
+              <div className="relative flex min-h-0 min-w-0 flex-col">
+                {children}
+              </div>
+              <Prefooter cmsCopy={prefooterCopy} />
+              <Footer />
+            </div>
+          </ParallaxProvider>
         </div>
-      </ParallaxProvider>
-
-      <Prefooter />
-      <Footer />
+      </div>
     </WebsiteProvider>
   )
 }

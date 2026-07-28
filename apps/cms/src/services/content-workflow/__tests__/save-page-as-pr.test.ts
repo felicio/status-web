@@ -28,7 +28,7 @@ describe('buildPageFixtureChange', () => {
   it('writes a route-derived page fixture after schema validation', () => {
     const change = buildPageFixtureChange(createPageDoc())
 
-    assert.equal(change.path, 'content/pages/en/about.json')
+    assert.equal(change.path, 'content/get.status.app/pages/en/about.json')
     assert.ok('content' in change)
 
     const page = JSON.parse(String(change.content)) as { route: string }

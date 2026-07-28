@@ -43,6 +43,10 @@ const SELECTORS = {
   APPROVE: '0x095ea7b3',
   // MiniMeToken.generateTokens(address,uint256)
   GENERATE_TOKENS: '0x827f32c0',
+  // ERC20.totalSupply()
+  TOTAL_SUPPLY: '0x18160ddd',
+  // ERC4626.totalAssets()
+  TOTAL_ASSETS: '0x01e1d114',
 } as const
 
 /** Encode an address as 32-byte ABI parameter (left-padded with zeros) */
@@ -91,6 +95,10 @@ export interface FundingPreset {
 // Safe with workers: 1. Eliminates 240 RPC calls on fallback revert paths.
 const globalSlotCache = new Map<string, bigint>()
 let globalLineaSlot: bigint | null = null
+
+// Vault accounting slots (totalSupply / stored totalAssets) per token:rpc:getter.
+// `null` = getter has no single backing slot (fully derived) — nothing to bump.
+const globalVaultAccountingSlotCache = new Map<string, bigint | null>()
 
 export class AnvilRpcHelper {
   private rpcIdCounter = 0
@@ -190,6 +198,51 @@ export class AnvilRpcHelper {
     await this.call(rpc ?? this.mainnetRpc, 'evm_mine', [])
   }
 
+  /**
+   * Disable auto-mining — submitted txs stay pending until a block is mined
+   * explicitly (mineBlock) or by interval mining. Used by congestion profiles
+   * (high-base-fee / stuck-tx) to hold transactions in the mempool.
+   */
+  async disableAutoMining(rpc?: string): Promise<void> {
+    await this.call(rpc ?? this.mainnetRpc, 'evm_setAutomine', [false])
+  }
+
+  // ---------------------------------------------------------------------------
+  // Congestion controls
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Set the base fee for the NEXT block via anvil_setNextBlockBaseFeePerGas.
+   * The wallet's fee estimator reads eth_feeHistory / eth_maxPriorityFeePerGas
+   * from the fork, so raising this makes the wallet quote higher gas and lets us
+   * exercise the send flow's "gas shifted" handling. Mine a block for it to take
+   * effect on subsequent estimates.
+   */
+  async setNextBlockBaseFee(weiPerGas: bigint, rpc?: string): Promise<void> {
+    await this.call(rpc ?? this.mainnetRpc, 'anvil_setNextBlockBaseFeePerGas', [
+      toHex(weiPerGas),
+    ])
+  }
+
+  /**
+   * Set the block gas limit via evm_setBlockGasLimit. Lowering it below a tx's
+   * gas requirement forces that tx to fail, exercising the "tight gas limit"
+   * congestion profile.
+   */
+  async setBlockGasLimit(gasLimit: bigint, rpc?: string): Promise<void> {
+    await this.call(rpc ?? this.mainnetRpc, 'evm_setBlockGasLimit', [
+      toHex(gasLimit),
+    ])
+  }
+
+  /**
+   * Drop a pending transaction from the mempool via anvil_dropTransaction.
+   * Useful to clean up a deliberately-stuck tx between tests.
+   */
+  async dropTransaction(txHash: string, rpc?: string): Promise<void> {
+    await this.call(rpc ?? this.mainnetRpc, 'anvil_dropTransaction', [txHash])
+  }
+
   // ---------------------------------------------------------------------------
   // Vault state
   // ---------------------------------------------------------------------------
@@ -225,10 +278,39 @@ export class AnvilRpcHelper {
 
   /** Set ETH balance directly via anvil_setBalance */
   async setEthBalance(amount: bigint, rpc?: string): Promise<void> {
+    await this.setEthBalanceFor(this.walletAddress, amount, rpc)
+  }
+
+  /**
+   * Set an arbitrary account's ETH balance via anvil_setBalance. Also makes the
+   * account "locally known" so subsequent state reads (balance, and gas
+   * estimation that credits it) don't hit the non-archive fork upstream — use
+   * this to pre-register a send recipient before estimating gas / sending.
+   */
+  async setEthBalanceFor(
+    address: string,
+    amount: bigint,
+    rpc?: string,
+  ): Promise<void> {
     await this.call(rpc ?? this.mainnetRpc, 'anvil_setBalance', [
-      this.walletAddress,
+      address,
       toHex(amount),
     ])
+  }
+
+  /**
+   * Read the wallet's native ETH balance. Reads a locally-set account (via
+   * setEthBalance), so it does not hit the non-archive fork upstream — use this
+   * to assert a send's effect via the sender's delta rather than the recipient's
+   * (an un-modified recipient triggers an archive request).
+   */
+  async getEthBalance(address?: string, rpc?: string): Promise<bigint> {
+    const result = await this.call<string>(
+      rpc ?? this.mainnetRpc,
+      'eth_getBalance',
+      [address ?? this.walletAddress, 'latest'],
+    )
+    return BigInt(result)
   }
 
   // ---------------------------------------------------------------------------
@@ -292,14 +374,155 @@ export class AnvilRpcHelper {
   }
 
   /** Read ERC-20 balanceOf via eth_call (retries transient failures) */
-  async getErc20Balance(token: string, rpc?: string): Promise<bigint> {
-    const data = SELECTORS.BALANCE_OF + encodeAddress(this.walletAddress)
+  async getErc20Balance(
+    token: string,
+    rpc?: string,
+    owner: string = this.walletAddress,
+  ): Promise<bigint> {
+    const data = SELECTORS.BALANCE_OF + encodeAddress(owner)
     const result = await this.callWithRetry<string>(
       rpc ?? this.mainnetRpc,
       'eth_call',
       [{ to: token, data }, 'latest'],
     )
     return BigInt(result)
+  }
+
+  /** Poll until a transaction receipt is available (and not reverted). */
+  async waitForTransactionReceipt(
+    hash: string,
+    rpc?: string,
+    timeoutMs = 30_000,
+  ): Promise<void> {
+    const targetRpc = rpc ?? this.mainnetRpc
+    const deadline = Date.now() + timeoutMs
+
+    while (Date.now() < deadline) {
+      const receipt = await this.call<{
+        status?: string
+      } | null>(targetRpc, 'eth_getTransactionReceipt', [hash])
+
+      if (receipt?.status) {
+        if (receipt.status === '0x0') {
+          throw new Error(`Transaction reverted: ${hash}`)
+        }
+        return
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
+
+    throw new Error(`Timed out waiting for transaction receipt: ${hash}`)
+  }
+
+  /** Current pending nonce for an account (`eth_getTransactionCount`, latest). */
+  async getTransactionCount(account: string, rpc?: string): Promise<bigint> {
+    const result = await this.callWithRetry<string>(
+      rpc ?? this.mainnetRpc,
+      'eth_getTransactionCount',
+      [account, 'latest'],
+    )
+    return BigInt(result)
+  }
+
+  /**
+   * Wait for the next transaction from `account` after MetaMask approval.
+   * Pass `startNonce` captured before submitting the form so a fast-mined tx
+   * is not missed.
+   */
+  async waitForAccountTransaction(
+    account: string,
+    rpc?: string,
+    startNonce?: bigint,
+    timeoutMs = 90_000,
+  ): Promise<string> {
+    const targetRpc = rpc ?? this.mainnetRpc
+    const baselineNonce =
+      startNonce ?? (await this.getTransactionCount(account, targetRpc))
+    const deadline = Date.now() + timeoutMs
+
+    while (Date.now() < deadline) {
+      const currentNonce = await this.getTransactionCount(account, targetRpc)
+
+      if (currentNonce > baselineNonce) {
+        const txHash = await this.findTransactionByNonce(
+          account,
+          baselineNonce,
+          targetRpc,
+        )
+        if (txHash) {
+          await this.waitForTransactionReceipt(txHash, targetRpc, 30_000)
+          return txHash
+        }
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
+
+    throw new Error(
+      `Timed out waiting for transaction from ${account} on ${targetRpc}`,
+    )
+  }
+
+  /**
+   * Poll until a vault share balance reaches zero, mining blocks along the way.
+   * Prefer this over receipt polling for Linea — MetaMask can leave txs pending
+   * until the fork mines, and receipt helpers may race the UI broadcast.
+   */
+  async waitForSharesBurned(
+    vault: string,
+    owner: string,
+    rpc?: string,
+    timeoutMs = 120_000,
+  ): Promise<void> {
+    const targetRpc = rpc ?? this.mainnetRpc
+    const deadline = Date.now() + timeoutMs
+
+    while (Date.now() < deadline) {
+      await this.mineBlock(targetRpc)
+      const balance = await this.getErc20Balance(vault, targetRpc, owner)
+      if (balance === 0n) {
+        return
+      }
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
+
+    throw new Error(
+      `Timed out waiting for ${vault} shares to burn for ${owner}`,
+    )
+  }
+
+  private async findTransactionByNonce(
+    account: string,
+    nonce: bigint,
+    rpc: string,
+  ): Promise<string | null> {
+    const latestHex = await this.call<string>(rpc, 'eth_blockNumber', [])
+    const latest = Number.parseInt(latestHex, 16)
+    const normalizedAccount = account.toLowerCase()
+
+    for (
+      let blockNumber = latest;
+      blockNumber >= 0 && blockNumber >= latest - 10;
+      blockNumber--
+    ) {
+      const block = await this.call<{
+        transactions?: Array<{ from?: string; nonce?: string; hash?: string }>
+      }>(rpc, 'eth_getBlockByNumber', [`0x${blockNumber.toString(16)}`, true])
+
+      for (const tx of block.transactions ?? []) {
+        if (
+          tx.from?.toLowerCase() === normalizedAccount &&
+          tx.nonce !== undefined &&
+          BigInt(tx.nonce) === nonce &&
+          tx.hash
+        ) {
+          return tx.hash
+        }
+      }
+    }
+
+    return null
   }
 
   /**
@@ -447,13 +670,14 @@ export class AnvilRpcHelper {
    *
    * Pre-deposit vaults are ERC-4626, so the vault contract is itself the share
    * token and `balanceOf(vault, user)` returns shares. Writing the share
-   * balance is enough to make the Hub show a deposited balance and enable the
-   * withdrawal ("Unlock"/"Claim") CTA — the on-chain `convertToAssets` ratio
-   * already exists on the fork, so the displayed asset amount is non-zero.
+   * balance makes the Hub show a deposited balance and enable the withdrawal
+   * ("Unlock"/"Claim") CTA.
    *
-   * Note: this does NOT bump the vault's totalSupply. It is intended for
-   * read-driven UI flows (modal readiness / validation), not for actually
-   * submitting an on-chain `withdraw`.
+   * The vault's totalSupply and stored totalAssets are bumped by the same
+   * amount to keep its accounting consistent: `withdraw` burns the shares from
+   * totalSupply and refuses amounts beyond totalAssets (InvalidState), and the
+   * live vaults have drained below 1 token of supply as real depositors exit —
+   * seeding a bare balance would make the on-chain `withdraw` revert.
    *
    * @param vaultAddress - the pre-deposit vault (share token) address
    * @param shares - share balance to assign, in wei
@@ -467,12 +691,158 @@ export class AnvilRpcHelper {
     rpc?: string,
     owner?: string,
   ): Promise<void> {
-    await this.fundErc20ViaStorage(
+    const targetRpc = rpc ?? this.mainnetRpc
+    const previousShares = await this.getErc20Balance(
       vaultAddress,
-      shares,
-      rpc ?? this.mainnetRpc,
-      owner,
+      targetRpc,
+      owner ?? this.walletAddress,
     )
+
+    await this.fundErc20ViaStorage(vaultAddress, shares, targetRpc, owner)
+
+    const delta = shares - previousShares
+    if (delta > 0n) {
+      await this.bumpVaultAccounting(vaultAddress, delta, targetRpc)
+    }
+  }
+
+  /**
+   * Add `delta` to the vault's totalSupply and stored totalAssets so shares
+   * seeded via storage remain burnable/withdrawable on-chain. totalAssets may
+   * be fully derived (no backing slot) on some vaults — then there is nothing
+   * to bump and it is skipped; totalSupply must always resolve for an ERC-20.
+   */
+  private async bumpVaultAccounting(
+    vaultAddress: string,
+    delta: bigint,
+    rpc: string,
+  ): Promise<void> {
+    const getters = [
+      { name: 'totalSupply', selector: SELECTORS.TOTAL_SUPPLY, required: true },
+      {
+        name: 'totalAssets',
+        selector: SELECTORS.TOTAL_ASSETS,
+        required: false,
+      },
+    ] as const
+
+    for (const getter of getters) {
+      const cacheKey = `${vaultAddress}:${rpc}:${getter.selector}`
+      if (!globalVaultAccountingSlotCache.has(cacheKey)) {
+        globalVaultAccountingSlotCache.set(
+          cacheKey,
+          await this.findUintGetterSlot(vaultAddress, getter.selector, rpc),
+        )
+      }
+
+      const slot = globalVaultAccountingSlotCache.get(cacheKey)!
+      if (slot === null) {
+        if (getter.required) {
+          throw new Error(
+            `Could not find the ${getter.name} storage slot for vault ${vaultAddress}`,
+          )
+        }
+        continue
+      }
+
+      const slotHex = '0x' + encodeUint256(slot)
+      const raw = await this.call<string>(rpc, 'eth_getStorageAt', [
+        vaultAddress,
+        slotHex,
+        'latest',
+      ])
+      await this.call(rpc, 'anvil_setStorageAt', [
+        vaultAddress,
+        slotHex,
+        '0x' + encodeUint256(BigInt(raw) + delta),
+      ])
+    }
+  }
+
+  /**
+   * Find the storage slot backing a parameterless uint256 getter (totalSupply /
+   * totalAssets) by value-matching raw slots 0..12 and confirming each match
+   * with a write probe. The probe matters: the pre-deposit vaults keep
+   * totalSupply and stored totalAssets equal, so a value match alone is
+   * ambiguous. Returns null when no slot backs the getter (derived value).
+   * Non-destructive: uses snapshot/revert.
+   */
+  private async findUintGetterSlot(
+    token: string,
+    getterSelector: string,
+    rpc: string,
+  ): Promise<bigint | null> {
+    const readGetter = async (): Promise<bigint> => {
+      const result = await this.callWithRetry<string>(rpc, 'eth_call', [
+        { to: token, data: getterSelector },
+        'latest',
+      ])
+      return BigInt(result)
+    }
+
+    const currentValue = await readGetter()
+    const probeValue = currentValue + 1n
+    const snapshotId = await this.snapshot(rpc)
+
+    try {
+      for (let slot = 0n; slot <= 12n; slot++) {
+        const slotHex = '0x' + encodeUint256(slot)
+        const raw = await this.call<string>(rpc, 'eth_getStorageAt', [
+          token,
+          slotHex,
+          'latest',
+        ])
+        if (BigInt(raw) !== currentValue) continue
+
+        await this.call(rpc, 'anvil_setStorageAt', [
+          token,
+          slotHex,
+          '0x' + encodeUint256(probeValue),
+        ])
+        if ((await readGetter()) === probeValue) {
+          return slot
+        }
+        // Equal-valued sibling slot (e.g. totalSupply vs totalAssets) — restore
+        // and keep probing.
+        await this.call(rpc, 'anvil_setStorageAt', [token, slotHex, raw])
+      }
+      return null
+    } finally {
+      await this.revert(snapshotId, rpc)
+    }
+  }
+
+  /**
+   * Ensure vault shares exist for on-chain `withdraw` execute tests.
+   *
+   * Keeps inherited fork balances when present. Seeds via storage only when
+   * `balanceOf` is zero — CI forks may not have production deposits for the
+   * test wallet. WETH uses a smaller seed (~1.1e16): a full 1e18 storage seed
+   * makes `balanceOf` non-zero but `withdraw` still reverts on the fork.
+   */
+  async ensureVaultSharesForExecute(
+    vaultAddress: string,
+    rpc: string,
+    owner: string,
+  ): Promise<bigint> {
+    const existing = await this.getErc20Balance(vaultAddress, rpc, owner)
+    if (existing > 0n) {
+      return existing
+    }
+
+    const isWethVault =
+      vaultAddress.toLowerCase() === CONTRACTS.WETH_VAULT.toLowerCase()
+    const shares = isWethVault ? 11n * 10n ** 15n : 10n ** 18n
+
+    await this.fundVaultShares(vaultAddress, shares, rpc, owner)
+
+    const funded = await this.getErc20Balance(vaultAddress, rpc, owner)
+    if (funded === 0n) {
+      throw new Error(
+        `Failed to seed vault shares for execute test: ${vaultAddress}`,
+      )
+    }
+    return funded
   }
 
   /**

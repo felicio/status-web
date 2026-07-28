@@ -81,7 +81,7 @@ Deploy via [`Jenkinsfile.website`](../../Jenkinsfile.website) with `APP_NAME=get
 
 ## Shared assets
 
-- `content/legal` → symlink to `status.app/content/legal`
+- `content/legal` — get.status.app–specific legal copy (not shared with `status.app`)
 - `public` → symlink to `status.app/public`
 
 ### Cloudinary

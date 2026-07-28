@@ -23,7 +23,7 @@ describe('site content fixture builders', () => {
       },
     })
 
-    assert.equal(change.path, 'content/site/en/settings.json')
+    assert.equal(change.path, 'content/get.status.app/site/en/settings.json')
   })
 
   it('writes site navigation to the repo-backed navigation file', () => {
@@ -49,6 +49,6 @@ describe('site content fixture builders', () => {
       },
     })
 
-    assert.equal(change.path, 'content/site/en/navigation.json')
+    assert.equal(change.path, 'content/get.status.app/site/en/navigation.json')
   })
 })

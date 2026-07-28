@@ -19,7 +19,7 @@ describe('collectReferencedCmsUploadChanges', () => {
     const changes = await collectReferencedCmsUploadChanges({
       changes: [
         {
-          path: 'content/pages/en/home.json',
+          path: 'content/get.status.app/pages/en/home.json',
           content: JSON.stringify({
             sections: [
               {
@@ -40,7 +40,7 @@ describe('collectReferencedCmsUploadChanges', () => {
 
     assert.equal(changes.length, 1)
     assert.deepEqual(changes[0], {
-      path: 'apps/web/public/cms/uploads/hero.webp',
+      path: 'apps/get.status.app/public/cms/uploads/hero.webp',
       content: Buffer.from('fake-image'),
     })
   })
@@ -50,7 +50,7 @@ describe('collectReferencedCmsUploadChanges', () => {
       collectReferencedCmsUploadChanges({
         changes: [
           {
-            path: 'content/pages/en/home.json',
+            path: 'content/get.status.app/pages/en/home.json',
             content: JSON.stringify({ src: '/cms/uploads/missing.webp' }),
           },
         ],

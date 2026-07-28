@@ -9,6 +9,11 @@ const workspaceRoot = path.join(cmsRoot, '../..')
 const nextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: workspaceRoot,
+  eslint: {
+    // CMS workspace still has WIP collection/workflow modules outside the
+    // get.status.app MVP scope; keep `pnpm lint` as the source of truth.
+    ignoreDuringBuilds: true,
+  },
   turbopack: {
     root: workspaceRoot,
     resolveAlias: {

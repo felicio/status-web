@@ -55,7 +55,7 @@ export const ContentChangeRequests: CollectionConfig = {
       index: true,
       admin: {
         description:
-          'Repo-relative path the PR touches (e.g. "content/pages/en/home.json"). Indexed for lock queries.',
+          'Repo-relative path the PR touches (e.g. "content/get.status.app/pages/en/home.json"). Indexed for lock queries.',
       },
     },
     {

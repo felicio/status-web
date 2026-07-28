@@ -61,7 +61,8 @@ const createDependencies = (
   },
   commitFiles: async ({ changes }) => ({
     commitSha: changes.some(
-      (change) => change.path === 'apps/web/public/cms/uploads/hero.webp'
+      (change) =>
+        change.path === 'apps/get.status.app/public/cms/uploads/hero.webp'
     )
       ? 'commit-with-media'
       : 'commit-sha',
@@ -102,7 +103,7 @@ const createInput = (
 ): SaveAsPullRequestInput => ({
   changes: [
     {
-      path: 'content/pages/en/home.json',
+      path: 'content/get.status.app/pages/en/home.json',
       content: JSON.stringify({
         hero: withMedia
           ? { image: '/cms/uploads/hero.webp' }

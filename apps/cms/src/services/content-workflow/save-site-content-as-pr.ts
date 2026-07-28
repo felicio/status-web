@@ -1,10 +1,10 @@
 import {
-  footerSchema,
-  navigationSchema,
-  siteSettingsSchema,
   type Footer,
+  footerSchema,
   type Navigation,
+  navigationSchema,
   type SiteSettings,
+  siteSettingsSchema,
 } from '@status-im/content/schemas'
 
 import { toJsonFileChange } from './fixture-helpers'

@@ -33,7 +33,7 @@ export default function CmsHomePage() {
         }}
       >
         Use this app for admin, content APIs, migrations, and generated types.
-        Keep the public frontend deployed independently in `apps/web`.
+        Keep the public frontend deployed independently in `apps/get.status.app`.
       </p>
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
         <a

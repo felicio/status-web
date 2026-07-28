@@ -1,5 +1,5 @@
-import { pageCopySchema, type PageCopy } from '@status-im/content/schemas'
 import { routeToPageSlug } from '@status-im/content/loaders'
+import { type PageCopy, pageCopySchema } from '@status-im/content/schemas'
 
 import { toJsonFileChange } from './fixture-helpers'
 import {
@@ -23,14 +23,14 @@ export const buildPageFixtureChange = (doc: PageDocLike) => {
   const parsed: PageCopy = pageCopySchema.parse(doc.page)
   if (parsed.route !== doc.route) {
     throw new Error(
-      `page route mismatch: field route "${doc.route}" does not match page.route "${parsed.route}"`
+      `page route mismatch: field route "${doc.route}" does not match page.route "${parsed.route}"`,
     )
   }
 
   const expectedSlug = routeToPageSlug(doc.route)
   if (doc.slug !== expectedSlug) {
     throw new Error(
-      `page slug mismatch: field slug "${doc.slug}" does not match route-derived slug "${expectedSlug}"`
+      `page slug mismatch: field slug "${doc.slug}" does not match route-derived slug "${expectedSlug}"`,
     )
   }
 

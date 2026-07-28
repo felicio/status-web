@@ -4,7 +4,7 @@ Guidance for agents working inside `apps/cms`. The root `AGENTS.md` still applie
 
 ## App Role
 
-This is the Payload CMS 3.x admin app on Next.js 16. It runs on port `3001`, with the admin UI at `/admin`.
+This is the Payload CMS 3.x admin app on Next.js 15. It runs on port `3010`, with the admin UI at `/admin`.
 
 Payload Postgres is not the production content source of truth. It stores users, sessions, drafts, and PR cache. Published content changes must flow through the GitHub PR workflow targeting `develop`.
 
@@ -40,4 +40,3 @@ Use `pnpm generate-types` from the repo root after Payload collection or schema 
 ## Environment
 
 The CMS must not silently fall back to localhost in production-like environments. Keep the existing assertions around `NEXT_PUBLIC_SERVER_URL` and `NEXT_PUBLIC_WEB_URL`; fix the environment instead of weakening those checks.
-

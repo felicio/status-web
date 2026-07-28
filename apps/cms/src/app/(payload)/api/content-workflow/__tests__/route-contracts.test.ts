@@ -3,9 +3,9 @@ import { describe, it } from 'node:test'
 
 import { NextRequest, NextResponse } from 'next/server'
 
-import { createMergePrPostHandler } from '../merge-pr/route'
-import { createRecentPrGetHandler } from '../recent-pr/route'
-import { createSyncProductionHandlers } from '../sync-production/route'
+import { createMergePrPostHandler } from '../merge-pr/create-merge-pr-post-handler'
+import { createRecentPrGetHandler } from '../recent-pr/create-recent-pr-get-handler'
+import { createSyncProductionHandlers } from '../sync-production/create-sync-production-handlers'
 
 const readJson = async (response: NextResponse) =>
   (await response.json()) as Record<string, unknown>

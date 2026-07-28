@@ -9,18 +9,9 @@ const CMS_COLLECTION_SLUGS = [
   'users',
   'media',
   'pages',
-  'builder-hub-settings',
-  'builder-listing-settings',
   'site-settings-content',
   'site-navigation-content',
   'site-footer-content',
-  'rfps',
-  'ideas',
-  'builder-resources',
-  'circles',
-  'circle-events',
-  'circle-initiatives',
-  'circle-resources',
   'content-change-requests',
 ] as const
 
@@ -39,7 +30,13 @@ const importPayloadConfig = async (
   try {
     await execFileAsync(
       process.execPath,
-      ['--import', 'tsx', '-e', "await import('./payload.config.ts')"],
+      [
+        '--import',
+        'tsx',
+        '--input-type=module',
+        '-e',
+        "await import('./payload.config.ts')",
+      ],
       {
         cwd: process.cwd(),
         env,
@@ -70,6 +67,7 @@ const readPayloadCollections = async (): Promise<
     [
       '--import',
       'tsx',
+      '--input-type=module',
       '-e',
       [
         "const { default: configPromise } = await import('./payload.config.ts')",

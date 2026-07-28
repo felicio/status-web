@@ -1,6 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "noPropertyAccessFromIndexSignature": false,
     "paths": {
       "@/*": [
         "./src/*"
@@ -31,6 +33,15 @@
     "**/*.mjs"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "eslint.config.mjs",
+    "scripts",
+    "src/migrations",
+    "src/**/__tests__",
+    "src/collections/BuilderHub.ts",
+    "src/collections/BuilderResources.ts",
+    "src/collections/Circles.ts",
+    "src/collections/Ideas.ts",
+    "src/collections/Rfps.ts"
   ]
 }

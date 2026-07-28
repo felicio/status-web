@@ -19,15 +19,15 @@ import { Users } from './src/collections/Users'
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const isProduction = process.env.NODE_ENV === 'production'
-const isVercel = Boolean(process.env.VERCEL)
+const isVercel = Boolean(process.env['VERCEL'])
 
 if (isProduction && !isVercel) {
-  if (!process.env.NEXT_PUBLIC_SERVER_URL) {
+  if (!process.env['NEXT_PUBLIC_SERVER_URL']) {
     throw new Error(
       'NEXT_PUBLIC_SERVER_URL is required in production (self-hosted) — set it to the public CMS origin (e.g. https://cms.example.com).'
     )
   }
-  if (!process.env.NEXT_PUBLIC_WEB_URL) {
+  if (!process.env['NEXT_PUBLIC_WEB_URL']) {
     throw new Error(
       'NEXT_PUBLIC_WEB_URL is required in production (self-hosted) — set it to the public web origin used for CORS / CSRF.'
     )
@@ -35,14 +35,14 @@ if (isProduction && !isVercel) {
 }
 
 const serverURL =
-  process.env.NEXT_PUBLIC_SERVER_URL ||
-  (process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
+  process.env['NEXT_PUBLIC_SERVER_URL'] ||
+  (process.env['VERCEL_URL']
+    ? `https://${process.env['VERCEL_URL']}`
     : 'http://localhost:3010')
 
-const frontendURL = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3005'
+const frontendURL = process.env['NEXT_PUBLIC_WEB_URL'] || 'http://localhost:3005'
 
-const databaseUrl = process.env.DATABASE_URL
+const databaseUrl = process.env['DATABASE_URL']
 if (!databaseUrl) {
   throw new Error(
     'DATABASE_URL is required (postgresql:// connection string). ' +
@@ -50,7 +50,7 @@ if (!databaseUrl) {
   )
 }
 
-const payloadSecret = process.env.PAYLOAD_SECRET
+const payloadSecret = process.env['PAYLOAD_SECRET']
 if (isProduction && !payloadSecret) {
   throw new Error(
     'PAYLOAD_SECRET environment variable is required in production'
@@ -59,7 +59,7 @@ if (isProduction && !payloadSecret) {
 
 const defaultDatabasePoolMax = isVercel ? '3' : isProduction ? '10' : '3'
 const databasePoolMax = Number.parseInt(
-  process.env.PAYLOAD_DB_POOL_MAX || defaultDatabasePoolMax,
+  process.env['PAYLOAD_DB_POOL_MAX'] || defaultDatabasePoolMax,
   10
 )
 if (!Number.isInteger(databasePoolMax) || databasePoolMax < 1) {
@@ -129,8 +129,8 @@ export default buildConfig({
       query_timeout: databaseQueryTimeoutMs,
       statement_timeout: databaseQueryTimeoutMs,
     },
-    schemaName: process.env.PAYLOAD_DB_SCHEMA || 'payload',
-    push: process.env.PAYLOAD_DB_PUSH !== 'false',
+    schemaName: process.env['PAYLOAD_DB_SCHEMA'] || 'payload',
+    push: process.env['PAYLOAD_DB_PUSH'] !== 'false',
   }),
   editor: lexicalEditor(),
   secret: payloadSecret || 'dev-only-insecure-secret',

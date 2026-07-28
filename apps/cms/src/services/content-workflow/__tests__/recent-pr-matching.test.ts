@@ -9,11 +9,11 @@ describe('matchesRecentPullRequestScope', () => {
       matchesRecentPullRequestScope(
         {
           branchName: 'content/site-settings-settings-20260518',
-          targetPath: 'content/site/en/settings.json',
+          targetPath: 'content/get.status.app/site/en/settings.json',
         },
         {
           slug: 'settings',
-          targetPath: 'content/site/en/settings.json',
+          targetPath: 'content/get.status.app/site/en/settings.json',
         }
       ),
       true
@@ -25,11 +25,11 @@ describe('matchesRecentPullRequestScope', () => {
       matchesRecentPullRequestScope(
         {
           branchName: 'content/page-about-20260518',
-          targetPath: 'content/pages/en/about.json',
+          targetPath: 'content/get.status.app/pages/en/about.json',
         },
         {
           slug: 'about',
-          targetPath: 'content/pages/en/about.json',
+          targetPath: 'content/get.status.app/pages/en/about.json',
         }
       ),
       true
