@@ -1,6 +1,7 @@
 import '../../../status.app/src/app/_styles/global.css'
 
 import { ToastContainer } from '@status-im/components'
+import { getSiteSettings } from '@status-im/content/loaders'
 import { Analytics } from '@vercel/analytics/next'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
@@ -20,45 +21,44 @@ const GET_SITE_OG_IMAGE = cloudinaryLoader({
   width: 1200,
 })
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://get.status.app/'),
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings(routing.defaultLocale)
+  const metadataBase = new URL(
+    settings.canonicalUrl.endsWith('/')
+      ? settings.canonicalUrl
+      : `${settings.canonicalUrl}/`
+  )
+  const baseUrl = settings.canonicalUrl.replace(/\/$/, '')
 
-  title:
-    'Status App | Private Messenger, Assets, Web Browser, Communities and more',
-  description:
-    'Status App combines an end-to-end encrypted messenger and a secure browser into a private, peer-to-peer ecosystem with no phone number or email required.',
-
-  alternates: {
-    canonical: './',
-  },
-
-  openGraph: {
-    type: 'website',
-    url: 'https://get.status.app',
-    title:
-      'Status App | Private Messenger, Assets, Web Browser, Communities and more',
-    description:
-      'Status App combines an end-to-end encrypted messenger and a secure browser into a private, peer-to-peer ecosystem with no phone number or email required.',
-    siteName: 'Status App',
-    images: [
-      {
-        url: GET_SITE_OG_IMAGE,
+  return {
+    metadataBase,
+    title: settings.siteTitle,
+    description: settings.siteDescription,
+    keywords: settings.keywords,
+    alternates: {
+      canonical: './',
+    },
+    openGraph: {
+      type: 'website',
+      url: baseUrl,
+      title: settings.siteTitle,
+      description: settings.siteDescription,
+      siteName: settings.siteName,
+      images: [{ url: GET_SITE_OG_IMAGE }],
+    },
+    appLinks: {
+      ios: {
+        app_store_id: '6754166924',
+        app_name: 'Status - privacy super app',
+        url: baseUrl,
       },
-    ],
-  },
-
-  appLinks: {
-    ios: {
-      app_store_id: '6754166924',
-      app_name: 'Status - privacy super app',
-      url: 'https://get.status.app',
+      android: {
+        package: 'app.status.mobile',
+        app_name: 'Status - privacy super app',
+        url: baseUrl,
+      },
     },
-    android: {
-      package: 'app.status.mobile',
-      app_name: 'Status - privacy super app',
-      url: 'https://get.status.app',
-    },
-  },
+  }
 }
 
 const inter = Inter({
