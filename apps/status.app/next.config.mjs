@@ -32,6 +32,9 @@ let config = {
   },
   reactStrictMode: true,
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
+  // Keep SEO metadata in <head>; Search Console ignores streamed canonicals.
+  // why: https://nextjs.org/docs/app/api-reference/config/next-config-js/htmlLimitedBots
+  htmlLimitedBots: /.*/,
 
   // runs on the root level
   typescript: {
@@ -168,18 +171,6 @@ let config = {
         permanent: false,
       },
       {
-        source: '/jobs',
-        has: [
-          {
-            type: 'query',
-            key: 'gh_jid',
-            value: '(?<paramName>.*)',
-          },
-        ],
-        permanent: false,
-        destination: '/jobs/:paramName',
-      },
-      {
         source: '/feature-upvote',
         destination: 'https://discuss.status.app/c/features/51',
         permanent: false,
@@ -187,6 +178,11 @@ let config = {
       {
         source: '/wallet',
         destination: '/help/wallet',
+        statusCode: 301,
+      },
+      {
+        source: '/wallet/delete-your-status-wallet-or-wallet-account',
+        destination: '/help/wallet/delete-your-status-wallet-accounts',
         statusCode: 301,
       },
       {
@@ -215,6 +211,11 @@ let config = {
         statusCode: 301,
       },
       {
+        source: '/keycard/if-you-can-t-unlock-your-keycard',
+        destination: '/help/keycard/if-you-can-t-unblock-your-keycard',
+        statusCode: 301,
+      },
+      {
         source: '/keycard/:slug+',
         destination: '/help/keycard/:slug+',
         statusCode: 301,
@@ -222,6 +223,11 @@ let config = {
       {
         source: '/communities',
         destination: '/help/communities',
+        statusCode: 301,
+      },
+      {
+        source: '/communities/set-up-channel-permissions',
+        destination: '/help/communities/set-up-your-channel-permissions',
         statusCode: 301,
       },
       {
